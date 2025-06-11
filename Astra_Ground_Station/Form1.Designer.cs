@@ -39,13 +39,13 @@
             System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
+            ConnectionButton = new Button();
             AltLogo = new PictureBox();
             AstraText = new Label();
             AstraLogo = new PictureBox();
-            GeneralSettings = new Button();
-            PortSettings = new Button();
-            TestStation = new Button();
-            GroundStation = new Button();
+            SettingsButton = new Button();
+            TestStationButton = new Button();
+            GroundStationButton = new Button();
             MainPanel = new Panel();
             graphtext = new Label();
             CamText = new Label();
@@ -126,7 +126,7 @@
             dat1absacc = new Label();
             absacctext = new Label();
             dat1wspd = new Label();
-            label1 = new Label();
+            windspeedtext = new Label();
             dat1accz = new Label();
             accztext = new Label();
             dat1aspd = new Label();
@@ -147,7 +147,7 @@
             dat1alt = new Label();
             gpsalttext = new Label();
             dat1gyry = new Label();
-            d = new Label();
+            dat1pitch = new Label();
             pitchtext = new Label();
             dat1lon = new Label();
             longitudetext = new Label();
@@ -166,6 +166,9 @@
             FSCalert = new Button();
             ALTalert = new Button();
             GNSSalert = new Button();
+            SettingsPanel = new Panel();
+            label1 = new Label();
+            TestStationPanel = new Panel();
             SideMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AltLogo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)AstraLogo).BeginInit();
@@ -182,24 +185,39 @@
             RocketPanel.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             RocketAlert.SuspendLayout();
+            SettingsPanel.SuspendLayout();
             SuspendLayout();
             // 
             // SideMenu
             // 
             SideMenu.BackColor = Color.FromArgb(40, 40, 40);
+            SideMenu.Controls.Add(ConnectionButton);
             SideMenu.Controls.Add(AltLogo);
             SideMenu.Controls.Add(AstraText);
             SideMenu.Controls.Add(AstraLogo);
-            SideMenu.Controls.Add(GeneralSettings);
-            SideMenu.Controls.Add(PortSettings);
-            SideMenu.Controls.Add(TestStation);
-            SideMenu.Controls.Add(GroundStation);
+            SideMenu.Controls.Add(SettingsButton);
+            SideMenu.Controls.Add(TestStationButton);
+            SideMenu.Controls.Add(GroundStationButton);
             SideMenu.Dock = DockStyle.Left;
             SideMenu.Location = new Point(0, 0);
             SideMenu.Name = "SideMenu";
             SideMenu.Size = new Size(300, 1001);
             SideMenu.TabIndex = 1;
             SideMenu.Paint += SideMenu_Paint;
+            // 
+            // ConnectionButton
+            // 
+            ConnectionButton.BackColor = Color.White;
+            ConnectionButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            ConnectionButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ConnectionButton.ForeColor = Color.DarkGreen;
+            ConnectionButton.Location = new Point(25, 628);
+            ConnectionButton.Name = "ConnectionButton";
+            ConnectionButton.Size = new Size(250, 50);
+            ConnectionButton.TabIndex = 10;
+            ConnectionButton.Text = "Connect";
+            ConnectionButton.UseVisualStyleBackColor = false;
+            ConnectionButton.Click += ConnectionButton_Click;
             // 
             // AltLogo
             // 
@@ -235,46 +253,38 @@
             AstraLogo.TabIndex = 7;
             AstraLogo.TabStop = false;
             // 
-            // GeneralSettings
+            // SettingsButton
             // 
-            GeneralSettings.Font = new Font("Verdana", 9.75F);
-            GeneralSettings.Location = new Point(25, 525);
-            GeneralSettings.Name = "GeneralSettings";
-            GeneralSettings.Size = new Size(250, 50);
-            GeneralSettings.TabIndex = 6;
-            GeneralSettings.Text = "General Settings";
-            GeneralSettings.UseVisualStyleBackColor = true;
+            SettingsButton.Font = new Font("Verdana", 9.75F);
+            SettingsButton.Location = new Point(25, 450);
+            SettingsButton.Name = "SettingsButton";
+            SettingsButton.Size = new Size(250, 50);
+            SettingsButton.TabIndex = 5;
+            SettingsButton.Text = "Settings";
+            SettingsButton.UseVisualStyleBackColor = true;
+            SettingsButton.Click += SettingsButton_Click;
             // 
-            // PortSettings
+            // TestStationButton
             // 
-            PortSettings.Font = new Font("Verdana", 9.75F);
-            PortSettings.Location = new Point(25, 450);
-            PortSettings.Name = "PortSettings";
-            PortSettings.Size = new Size(250, 50);
-            PortSettings.TabIndex = 5;
-            PortSettings.Text = "Port Settings";
-            PortSettings.UseVisualStyleBackColor = true;
+            TestStationButton.Font = new Font("Verdana", 9.75F);
+            TestStationButton.Location = new Point(25, 375);
+            TestStationButton.Name = "TestStationButton";
+            TestStationButton.Size = new Size(250, 50);
+            TestStationButton.TabIndex = 4;
+            TestStationButton.Text = "Test Station";
+            TestStationButton.UseVisualStyleBackColor = true;
+            TestStationButton.Click += TestStation_Click;
             // 
-            // TestStation
+            // GroundStationButton
             // 
-            TestStation.Font = new Font("Verdana", 9.75F);
-            TestStation.Location = new Point(25, 375);
-            TestStation.Name = "TestStation";
-            TestStation.Size = new Size(250, 50);
-            TestStation.TabIndex = 4;
-            TestStation.Text = "Test Station";
-            TestStation.UseVisualStyleBackColor = true;
-            // 
-            // GroundStation
-            // 
-            GroundStation.Font = new Font("Verdana", 9.75F);
-            GroundStation.Location = new Point(25, 300);
-            GroundStation.Name = "GroundStation";
-            GroundStation.Size = new Size(250, 50);
-            GroundStation.TabIndex = 0;
-            GroundStation.Text = "Ground Station";
-            GroundStation.UseVisualStyleBackColor = true;
-            GroundStation.Click += button1_Click;
+            GroundStationButton.Font = new Font("Verdana", 9.75F);
+            GroundStationButton.Location = new Point(25, 300);
+            GroundStationButton.Name = "GroundStationButton";
+            GroundStationButton.Size = new Size(250, 50);
+            GroundStationButton.TabIndex = 0;
+            GroundStationButton.Text = "Ground Station";
+            GroundStationButton.UseVisualStyleBackColor = true;
+            GroundStationButton.Click += button1_Click;
             // 
             // MainPanel
             // 
@@ -288,73 +298,66 @@
             MainPanel.Controls.Add(CamPanel);
             MainPanel.Controls.Add(GraphPanel);
             MainPanel.Controls.Add(RocketPanel);
+            MainPanel.Controls.Add(SettingsPanel);
             MainPanel.Dock = DockStyle.Top;
             MainPanel.Location = new Point(300, 0);
             MainPanel.Margin = new Padding(30);
             MainPanel.Name = "MainPanel";
             MainPanel.Size = new Size(1604, 1000);
             MainPanel.TabIndex = 2;
-            MainPanel.Paint += MainPanel_Paint;
             // 
             // graphtext
             // 
             graphtext.AutoSize = true;
-            graphtext.BorderStyle = BorderStyle.FixedSingle;
             graphtext.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             graphtext.ForeColor = SystemColors.ButtonFace;
             graphtext.Location = new Point(76, 339);
             graphtext.Name = "graphtext";
-            graphtext.Size = new Size(119, 20);
+            graphtext.Size = new Size(117, 18);
             graphtext.TabIndex = 11;
             graphtext.Text = "Graph - Map";
-            graphtext.Click += label2_Click;
             // 
             // CamText
             // 
             CamText.AutoSize = true;
-            CamText.BorderStyle = BorderStyle.FixedSingle;
             CamText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             CamText.ForeColor = SystemColors.ButtonFace;
             CamText.Location = new Point(838, 340);
             CamText.Name = "CamText";
-            CamText.Size = new Size(79, 20);
+            CamText.Size = new Size(77, 18);
             CamText.TabIndex = 10;
             CamText.Text = "Camera";
             // 
             // PosText
             // 
             PosText.AutoSize = true;
-            PosText.BorderStyle = BorderStyle.FixedSingle;
             PosText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PosText.ForeColor = SystemColors.ButtonFace;
             PosText.Location = new Point(662, 20);
             PosText.Name = "PosText";
-            PosText.Size = new Size(175, 20);
+            PosText.Size = new Size(173, 18);
             PosText.TabIndex = 9;
             PosText.Text = "Rocket Orientation";
-            PosText.Click += label3_Click;
             // 
             // RocketText
             // 
             RocketText.AutoSize = true;
-            RocketText.BorderStyle = BorderStyle.FixedSingle;
             RocketText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             RocketText.ForeColor = SystemColors.ButtonFace;
             RocketText.Location = new Point(76, 20);
             RocketText.Name = "RocketText";
-            RocketText.Size = new Size(71, 20);
+            RocketText.Size = new Size(69, 18);
             RocketText.TabIndex = 8;
             RocketText.Text = "Rocket";
             // 
             // PayloadText
             // 
             PayloadText.AutoSize = true;
-            PayloadText.BorderStyle = BorderStyle.FixedSingle;
             PayloadText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PayloadText.ForeColor = SystemColors.ButtonFace;
             PayloadText.Location = new Point(1028, 21);
             PayloadText.Name = "PayloadText";
-            PayloadText.Size = new Size(80, 20);
+            PayloadText.Size = new Size(78, 18);
             PayloadText.TabIndex = 7;
             PayloadText.Text = "Payload";
             // 
@@ -1119,7 +1122,6 @@
             RocketPanel.RightToLeft = RightToLeft.No;
             RocketPanel.Size = new Size(580, 300);
             RocketPanel.TabIndex = 0;
-            RocketPanel.Paint += RocketStatus_Paint;
             // 
             // tableLayoutPanel1
             // 
@@ -1142,7 +1144,7 @@
             tableLayoutPanel1.Controls.Add(dat1absacc, 3, 6);
             tableLayoutPanel1.Controls.Add(absacctext, 2, 6);
             tableLayoutPanel1.Controls.Add(dat1wspd, 1, 6);
-            tableLayoutPanel1.Controls.Add(label1, 0, 6);
+            tableLayoutPanel1.Controls.Add(windspeedtext, 0, 6);
             tableLayoutPanel1.Controls.Add(dat1accz, 3, 5);
             tableLayoutPanel1.Controls.Add(accztext, 2, 5);
             tableLayoutPanel1.Controls.Add(dat1aspd, 1, 5);
@@ -1163,7 +1165,7 @@
             tableLayoutPanel1.Controls.Add(dat1alt, 1, 2);
             tableLayoutPanel1.Controls.Add(gpsalttext, 0, 2);
             tableLayoutPanel1.Controls.Add(dat1gyry, 5, 1);
-            tableLayoutPanel1.Controls.Add(d, 3, 1);
+            tableLayoutPanel1.Controls.Add(dat1pitch, 3, 1);
             tableLayoutPanel1.Controls.Add(pitchtext, 2, 1);
             tableLayoutPanel1.Controls.Add(dat1lon, 1, 1);
             tableLayoutPanel1.Controls.Add(longitudetext, 0, 1);
@@ -1185,7 +1187,6 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
             tableLayoutPanel1.Size = new Size(545, 220);
             tableLayoutPanel1.TabIndex = 1;
-            tableLayoutPanel1.Paint += tableLayoutPanel1_Paint;
             // 
             // gyroxtext
             // 
@@ -1195,7 +1196,6 @@
             gyroxtext.TabIndex = 44;
             gyroxtext.Text = "Gyro X[°]:";
             gyroxtext.TextAlign = ContentAlignment.MiddleRight;
-            gyroxtext.Click += label13_Click;
             // 
             // statustext
             // 
@@ -1214,7 +1214,6 @@
             voltagetext.TabIndex = 22;
             voltagetext.Text = "Voltage(V):";
             voltagetext.TextAlign = ContentAlignment.MiddleRight;
-            voltagetext.Click += label23_Click;
             // 
             // gyroytext
             // 
@@ -1233,7 +1232,6 @@
             temptext.TabIndex = 4;
             temptext.Text = "Temprature[C°]:";
             temptext.TextAlign = ContentAlignment.MiddleRight;
-            temptext.Click += label5_Click;
             // 
             // gyroztext
             // 
@@ -1252,7 +1250,6 @@
             calcalttext.TabIndex = 10;
             calcalttext.Text = "Calc Altitute[m]:";
             calcalttext.TextAlign = ContentAlignment.MiddleRight;
-            calcalttext.Click += label11_Click;
             // 
             // dat1sts
             // 
@@ -1282,7 +1279,6 @@
             absacctext.TabIndex = 38;
             absacctext.Text = "Absolute Acc [m/s²]:";
             absacctext.TextAlign = ContentAlignment.MiddleRight;
-            absacctext.Click += label7_Click;
             // 
             // dat1wspd
             // 
@@ -1294,14 +1290,14 @@
             dat1wspd.Text = "--";
             dat1wspd.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // label1
+            // windspeedtext
             // 
-            label1.Location = new Point(4, 187);
-            label1.Name = "label1";
-            label1.Size = new Size(94, 30);
-            label1.TabIndex = 36;
-            label1.Text = "Wind Speed[m/s]:";
-            label1.TextAlign = ContentAlignment.MiddleRight;
+            windspeedtext.Location = new Point(4, 187);
+            windspeedtext.Name = "windspeedtext";
+            windspeedtext.Size = new Size(94, 30);
+            windspeedtext.TabIndex = 36;
+            windspeedtext.Text = "Wind Speed[m/s]:";
+            windspeedtext.TextAlign = ContentAlignment.MiddleRight;
             // 
             // dat1accz
             // 
@@ -1495,15 +1491,15 @@
             dat1gyry.Text = "--";
             dat1gyry.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // d
+            // dat1pitch
             // 
-            d.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            d.Location = new Point(287, 32);
-            d.Name = "d";
-            d.Size = new Size(74, 30);
-            d.TabIndex = 9;
-            d.Text = "--";
-            d.TextAlign = ContentAlignment.MiddleLeft;
+            dat1pitch.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dat1pitch.Location = new Point(287, 32);
+            dat1pitch.Name = "dat1pitch";
+            dat1pitch.Size = new Size(74, 30);
+            dat1pitch.TabIndex = 9;
+            dat1pitch.Text = "--";
+            dat1pitch.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // pitchtext
             // 
@@ -1671,7 +1667,6 @@
             IMUalert.TabIndex = 2;
             IMUalert.Text = "IMU";
             IMUalert.UseVisualStyleBackColor = false;
-            IMUalert.Click += button1_Click_1;
             // 
             // SSCalert
             // 
@@ -1704,7 +1699,6 @@
             FSCalert.TabIndex = 1;
             FSCalert.Text = "FSC";
             FSCalert.UseVisualStyleBackColor = false;
-            FSCalert.Click += GPSalert_Click;
             // 
             // ALTalert
             // 
@@ -1739,6 +1733,35 @@
             GNSSalert.Text = "GNSS";
             GNSSalert.UseVisualStyleBackColor = false;
             // 
+            // SettingsPanel
+            // 
+            SettingsPanel.BackColor = Color.Transparent;
+            SettingsPanel.Controls.Add(label1);
+            SettingsPanel.Location = new Point(0, 0);
+            SettingsPanel.Name = "SettingsPanel";
+            SettingsPanel.Size = new Size(1600, 1000);
+            SettingsPanel.TabIndex = 12;
+            SettingsPanel.Visible = false;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.ForeColor = SystemColors.Control;
+            label1.Location = new Point(171, 12);
+            label1.Name = "label1";
+            label1.Size = new Size(38, 15);
+            label1.TabIndex = 0;
+            label1.Text = "label1";
+            // 
+            // TestStationPanel
+            // 
+            TestStationPanel.BackColor = Color.FromArgb(64, 0, 0);
+            TestStationPanel.Location = new Point(300, 0);
+            TestStationPanel.Name = "TestStationPanel";
+            TestStationPanel.Size = new Size(2600, 1000);
+            TestStationPanel.TabIndex = 3;
+            TestStationPanel.Visible = false;
+            // 
             // Astra
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1747,6 +1770,7 @@
             ClientSize = new Size(1904, 1001);
             Controls.Add(MainPanel);
             Controls.Add(SideMenu);
+            Controls.Add(TestStationPanel);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Astra";
             StartPosition = FormStartPosition.CenterScreen;
@@ -1769,6 +1793,8 @@
             RocketPanel.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             RocketAlert.ResumeLayout(false);
+            SettingsPanel.ResumeLayout(false);
+            SettingsPanel.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1776,11 +1802,11 @@
 
         private TextBox textBox1;
         private Panel SideMenu;
-        private Button GroundStation;
+        private Button GroundStationButton;
         private Label latitudetext;
         private Button GeneralSettings;
-        private Button PortSettings;
-        private Button TestStation;
+        private Button SettingsButton;
+        private Button TestStationButton;
         private PictureBox AstraLogo;
         private Label AstraText;
         private PictureBox AltLogo;
@@ -1818,7 +1844,7 @@
         private Label dat1alt;
         private Label gpsalttext;
         private Label dat1gyry;
-        private Label d;
+        private Label dat1pitch;
         private Label pitchtext;
         private Label dat1lon;
         private Label longitudetext;
@@ -1830,7 +1856,7 @@
         private Label dat1absacc;
         private Label absacctext;
         private Label dat1wspd;
-        private Label label1;
+        private Label windspeedtext;
         private Label accztext;
         private Label gyroxtext;
         private Label voltagetext;
@@ -1904,5 +1930,10 @@
         private Label graphtext;
         private Label CamText;
         private PictureBox pictureBox1;
+        private Panel SettingsPanel;
+        private Settings settings1;
+        private Panel TestStationPanel;
+        private Button ConnectionButton;
+        private Label label1;
     }
 }

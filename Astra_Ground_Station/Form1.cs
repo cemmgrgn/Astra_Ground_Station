@@ -11,20 +11,32 @@ namespace Astra_Ground_Station
 {
     public partial class Astra : Form
     {
+        private SerialPortReader serialPortReader;
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
         private readonly PointLatLng defGPSpos = new PointLatLng(40.991456211811055, 28.83219514613196);
 
+        private Settings settingsControl;
+        private TestStation testStationControl;
+
         public Astra()
         {
             InitializeComponent();
+            ConnectionButton.Click += ConnectionButton_Click;
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             this.FormClosing += Astra_FormClosing;
             this.Load += Form1_Load;
+
+            settingsControl = new Settings();
+            settingsControl.Dock = DockStyle.Fill;
+
+            testStationControl = new TestStation();
+            testStationControl.Dock = DockStyle.Fill;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
             RocketMap.MapProvider = BingSatelliteMapProvider.Instance;
             RocketMap.Position = defGPSpos;
             RocketMap.MinZoom = 1;
@@ -32,7 +44,7 @@ namespace Astra_Ground_Station
             RocketMap.Zoom = 16;
             GMaps.Instance.Mode = AccessMode.CacheOnly;
             RocketMap.OnMapZoomChanged += RocketMap_OnMapZoomChanged;
-
+            /*
             videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             if (videoDevices.Count == 0)
             {
@@ -42,7 +54,7 @@ namespace Astra_Ground_Station
 
             videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
             videoSource.NewFrame += videoSource_NewFrame;
-            videoSource.Start();
+            videoSource.Start();*/
         }
 
         private void RocketMap_OnMapZoomChanged()
@@ -76,6 +88,7 @@ namespace Astra_Ground_Station
         private void Astra_FormClosing(object sender, FormClosingEventArgs e)
         {
             StopCamera();
+            serialPortReader.Dispose();
             Environment.Exit(0);
         }
 
@@ -105,24 +118,79 @@ namespace Astra_Ground_Station
             }
         }
 
+        private void SettingsButton_Click(object sender, EventArgs e)
+        {
+            if (!SettingsPanel.Controls.Contains(settingsControl))
+            {
+                SettingsPanel.Controls.Clear();
+                SettingsPanel.Controls.Add(settingsControl);
+                SettingsPanel.Visible = true;
+                SettingsPanel.BringToFront();
+                TestStationPanel.Controls.Remove(testStationControl);
+                TestStationPanel.Visible = false;
+            }
+            else
+            {
+                SettingsPanel.Controls.Remove(settingsControl);
+                SettingsPanel.Visible = false;
+            }
+        }
+
+        private void TestStation_Click(object sender, EventArgs e)
+        {
+            if (!TestStationPanel.Controls.Contains(testStationControl))
+            {
+                TestStationPanel.Controls.Clear();
+                TestStationPanel.Controls.Add(testStationControl);
+                TestStationPanel.Visible = true;
+                TestStationPanel.BringToFront();
+                SettingsPanel.Controls.Remove(settingsControl);
+                SettingsPanel.Visible = false;
+            }
+            else
+            {
+                TestStationPanel.Controls.Remove(testStationControl);
+                TestStationPanel.Visible = false;
+            }
+        }
+
         private void textBox1_TextChanged(object sender, EventArgs e) { }
         private void SideMenu_Paint(object sender, PaintEventArgs e) { }
-        private void button1_Click(object sender, EventArgs e) { }
-        private void label1_Click(object sender, EventArgs e) { }
-        private void label1_Click_1(object sender, EventArgs e) { }
-        private void button1_Click_1(object sender, EventArgs e) { }
-        private void GPSalert_Click(object sender, EventArgs e) { }
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e) { }
-        private void label7_Click(object sender, EventArgs e) { }
-        private void label5_Click(object sender, EventArgs e) { }
-        private void label11_Click(object sender, EventArgs e) { }
-        private void label23_Click(object sender, EventArgs e) { }
-        private void label13_Click(object sender, EventArgs e) { }
-        private void RocketStatus_Paint(object sender, PaintEventArgs e) { }
-        private void MainPanel_Paint(object sender, PaintEventArgs e) { }
-        private void altgraph_Click(object sender, EventArgs e) { }
-        private void preschart_Click(object sender, EventArgs e) { }
-        private void label3_Click(object sender, EventArgs e) { }
-        private void label2_Click(object sender, EventArgs e) { }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SettingsPanel.Visible = false;
+            SettingsPanel.BringToFront();
+            TestStationPanel.Visible = false;
+            TestStationPanel.BringToFront();
+        }
+
+
+
+        private void ConnectionButton_Click(object sender, EventArgs e)
+        {
+            if (serialPortReader == null)
+            {
+                try
+                {
+                    serialPortReader = new SerialPortReader("settings.csv", label1);
+                    serialPortReader.Start("Rocket");
+                    label1.Text = "Disconnect";
+                    label1.ForeColor = Color.Red;
+                }
+                catch (Exception ex)
+                {
+                    label1.Text = "Bağlantı Hatası: " + ex.Message;
+                    label1.ForeColor = Color.DarkGreen;
+                }
+            }
+            else
+            {
+                serialPortReader.Dispose();
+                serialPortReader = null;
+                label1.Text = "Connect";
+                label1.ForeColor = Color.DarkGreen;
+            }
+        }
     }
+    
 }
