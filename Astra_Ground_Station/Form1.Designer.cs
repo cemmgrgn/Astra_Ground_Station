@@ -39,13 +39,18 @@
             System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
-            ConnectionButton = new Button();
+            ConnectPayloadButton = new Button();
+            DisconnectPayloadButton = new Button();
+            messageLabel = new Label();
+            ConnectButton = new Button();
+            DisconnectButton = new Button();
             AltLogo = new PictureBox();
             AstraText = new Label();
             AstraLogo = new PictureBox();
             SettingsButton = new Button();
             TestStationButton = new Button();
             GroundStationButton = new Button();
+            dat1rocket = new Label();
             MainPanel = new Panel();
             graphtext = new Label();
             CamText = new Label();
@@ -54,6 +59,7 @@
             PayloadText = new Label();
             RocketAngel = new Panel();
             SatPanel = new Panel();
+            dat2payload = new Label();
             tableLayoutPanel2 = new TableLayoutPanel();
             gyroxtext2 = new Label();
             statustext2 = new Label();
@@ -107,6 +113,8 @@
             ALTalert2 = new Button();
             GNSSalert2 = new Button();
             CamPanel = new Panel();
+            CameraDisconnectButton = new Button();
+            CameraConnectButton = new Button();
             pictureBox1 = new PictureBox();
             GraphPanel = new Panel();
             AccChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
@@ -167,7 +175,6 @@
             ALTalert = new Button();
             GNSSalert = new Button();
             SettingsPanel = new Panel();
-            label1 = new Label();
             TestStationPanel = new Panel();
             SideMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AltLogo).BeginInit();
@@ -185,13 +192,16 @@
             RocketPanel.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             RocketAlert.SuspendLayout();
-            SettingsPanel.SuspendLayout();
             SuspendLayout();
             // 
             // SideMenu
             // 
             SideMenu.BackColor = Color.FromArgb(40, 40, 40);
-            SideMenu.Controls.Add(ConnectionButton);
+            SideMenu.Controls.Add(ConnectPayloadButton);
+            SideMenu.Controls.Add(DisconnectPayloadButton);
+            SideMenu.Controls.Add(messageLabel);
+            SideMenu.Controls.Add(ConnectButton);
+            SideMenu.Controls.Add(DisconnectButton);
             SideMenu.Controls.Add(AltLogo);
             SideMenu.Controls.Add(AstraText);
             SideMenu.Controls.Add(AstraLogo);
@@ -205,19 +215,68 @@
             SideMenu.TabIndex = 1;
             SideMenu.Paint += SideMenu_Paint;
             // 
-            // ConnectionButton
+            // ConnectPayloadButton
             // 
-            ConnectionButton.BackColor = Color.White;
-            ConnectionButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
-            ConnectionButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            ConnectionButton.ForeColor = Color.DarkGreen;
-            ConnectionButton.Location = new Point(25, 628);
-            ConnectionButton.Name = "ConnectionButton";
-            ConnectionButton.Size = new Size(250, 50);
-            ConnectionButton.TabIndex = 10;
-            ConnectionButton.Text = "Connect";
-            ConnectionButton.UseVisualStyleBackColor = false;
-            ConnectionButton.Click += ConnectionButton_Click;
+            ConnectPayloadButton.BackColor = Color.White;
+            ConnectPayloadButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            ConnectPayloadButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ConnectPayloadButton.ForeColor = Color.DarkGreen;
+            ConnectPayloadButton.Location = new Point(25, 695);
+            ConnectPayloadButton.Name = "ConnectPayloadButton";
+            ConnectPayloadButton.Size = new Size(250, 50);
+            ConnectPayloadButton.TabIndex = 13;
+            ConnectPayloadButton.Text = "Connect Payload";
+            ConnectPayloadButton.UseVisualStyleBackColor = false;
+            // 
+            // DisconnectPayloadButton
+            // 
+            DisconnectPayloadButton.BackColor = Color.White;
+            DisconnectPayloadButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            DisconnectPayloadButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            DisconnectPayloadButton.ForeColor = Color.Crimson;
+            DisconnectPayloadButton.Location = new Point(25, 695);
+            DisconnectPayloadButton.Name = "DisconnectPayloadButton";
+            DisconnectPayloadButton.Size = new Size(250, 50);
+            DisconnectPayloadButton.TabIndex = 14;
+            DisconnectPayloadButton.Text = "Disconnect Payload";
+            DisconnectPayloadButton.UseVisualStyleBackColor = false;
+            DisconnectPayloadButton.Visible = false;
+            // 
+            // messageLabel
+            // 
+            messageLabel.ForeColor = SystemColors.Control;
+            messageLabel.Location = new Point(3, 896);
+            messageLabel.Name = "messageLabel";
+            messageLabel.Size = new Size(294, 51);
+            messageLabel.TabIndex = 12;
+            // 
+            // ConnectButton
+            // 
+            ConnectButton.BackColor = Color.White;
+            ConnectButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            ConnectButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ConnectButton.ForeColor = Color.DarkGreen;
+            ConnectButton.Location = new Point(25, 628);
+            ConnectButton.Name = "ConnectButton";
+            ConnectButton.Size = new Size(250, 50);
+            ConnectButton.TabIndex = 10;
+            ConnectButton.Text = "Connect Rocket";
+            ConnectButton.UseVisualStyleBackColor = false;
+            ConnectButton.Click += ConnectButton_Click;
+            // 
+            // DisconnectButton
+            // 
+            DisconnectButton.BackColor = Color.White;
+            DisconnectButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            DisconnectButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            DisconnectButton.ForeColor = Color.Crimson;
+            DisconnectButton.Location = new Point(25, 628);
+            DisconnectButton.Name = "DisconnectButton";
+            DisconnectButton.Size = new Size(250, 50);
+            DisconnectButton.TabIndex = 11;
+            DisconnectButton.Text = "Disconnect Rocket";
+            DisconnectButton.UseVisualStyleBackColor = false;
+            DisconnectButton.Visible = false;
             // 
             // AltLogo
             // 
@@ -286,6 +345,16 @@
             GroundStationButton.UseVisualStyleBackColor = true;
             GroundStationButton.Click += button1_Click;
             // 
+            // dat1rocket
+            // 
+            dat1rocket.BackColor = Color.Transparent;
+            dat1rocket.Font = new Font("Segoe UI", 8F);
+            dat1rocket.ForeColor = SystemColors.Control;
+            dat1rocket.Location = new Point(-1, 236);
+            dat1rocket.Name = "dat1rocket";
+            dat1rocket.Size = new Size(580, 18);
+            dat1rocket.TabIndex = 0;
+            // 
             // MainPanel
             // 
             MainPanel.Controls.Add(graphtext);
@@ -333,7 +402,7 @@
             PosText.AutoSize = true;
             PosText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PosText.ForeColor = SystemColors.ButtonFace;
-            PosText.Location = new Point(662, 20);
+            PosText.Location = new Point(662, 13);
             PosText.Name = "PosText";
             PosText.Size = new Size(173, 18);
             PosText.TabIndex = 9;
@@ -344,7 +413,7 @@
             RocketText.AutoSize = true;
             RocketText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             RocketText.ForeColor = SystemColors.ButtonFace;
-            RocketText.Location = new Point(76, 20);
+            RocketText.Location = new Point(76, 12);
             RocketText.Name = "RocketText";
             RocketText.Size = new Size(69, 18);
             RocketText.TabIndex = 8;
@@ -355,7 +424,7 @@
             PayloadText.AutoSize = true;
             PayloadText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PayloadText.ForeColor = SystemColors.ButtonFace;
-            PayloadText.Location = new Point(1028, 21);
+            PayloadText.Location = new Point(1028, 14);
             PayloadText.Name = "PayloadText";
             PayloadText.Size = new Size(78, 18);
             PayloadText.TabIndex = 7;
@@ -364,23 +433,34 @@
             // RocketAngel
             // 
             RocketAngel.BorderStyle = BorderStyle.FixedSingle;
-            RocketAngel.Location = new Point(625, 30);
+            RocketAngel.Location = new Point(625, 21);
             RocketAngel.Name = "RocketAngel";
-            RocketAngel.Size = new Size(350, 300);
+            RocketAngel.Size = new Size(350, 309);
             RocketAngel.TabIndex = 6;
             // 
             // SatPanel
             // 
             SatPanel.BackgroundImageLayout = ImageLayout.None;
             SatPanel.BorderStyle = BorderStyle.FixedSingle;
+            SatPanel.Controls.Add(dat2payload);
             SatPanel.Controls.Add(tableLayoutPanel2);
             SatPanel.Controls.Add(SatAlert);
             SatPanel.ForeColor = Color.AliceBlue;
-            SatPanel.Location = new Point(990, 30);
+            SatPanel.Location = new Point(990, 21);
             SatPanel.Name = "SatPanel";
             SatPanel.RightToLeft = RightToLeft.No;
-            SatPanel.Size = new Size(580, 300);
+            SatPanel.Size = new Size(580, 309);
             SatPanel.TabIndex = 5;
+            // 
+            // dat2payload
+            // 
+            dat2payload.BackColor = Color.Transparent;
+            dat2payload.Font = new Font("Segoe UI", 8F);
+            dat2payload.ForeColor = SystemColors.Control;
+            dat2payload.Location = new Point(0, 236);
+            dat2payload.Name = "dat2payload";
+            dat2payload.Size = new Size(579, 18);
+            dat2payload.TabIndex = 2;
             // 
             // tableLayoutPanel2
             // 
@@ -858,7 +938,7 @@
             SatAlert.Controls.Add(ALTalert2);
             SatAlert.Controls.Add(GNSSalert2);
             SatAlert.Dock = DockStyle.Bottom;
-            SatAlert.Location = new Point(0, 248);
+            SatAlert.Location = new Point(0, 257);
             SatAlert.Name = "SatAlert";
             SatAlert.Size = new Size(578, 50);
             SatAlert.TabIndex = 0;
@@ -994,11 +1074,33 @@
             // CamPanel
             // 
             CamPanel.BorderStyle = BorderStyle.FixedSingle;
+            CamPanel.Controls.Add(CameraConnectButton);
+            CamPanel.Controls.Add(CameraDisconnectButton);
             CamPanel.Controls.Add(pictureBox1);
             CamPanel.Location = new Point(800, 350);
             CamPanel.Name = "CamPanel";
             CamPanel.Size = new Size(770, 625);
             CamPanel.TabIndex = 4;
+            // 
+            // CameraDisconnectButton
+            // 
+            CameraDisconnectButton.Location = new Point(39, 14);
+            CameraDisconnectButton.Name = "CameraDisconnectButton";
+            CameraDisconnectButton.Size = new Size(75, 23);
+            CameraDisconnectButton.TabIndex = 2;
+            CameraDisconnectButton.Text = "Disconnect";
+            CameraDisconnectButton.UseVisualStyleBackColor = true;
+            CameraDisconnectButton.Visible = false;
+            // 
+            // CameraConnectButton
+            // 
+            CameraConnectButton.Location = new Point(39, 14);
+            CameraConnectButton.Name = "CameraConnectButton";
+            CameraConnectButton.Size = new Size(75, 23);
+            CameraConnectButton.TabIndex = 1;
+            CameraConnectButton.Text = "Connect";
+            CameraConnectButton.UseVisualStyleBackColor = true;
+            CameraConnectButton.Click += CameraConnectButton_Click;
             // 
             // pictureBox1
             // 
@@ -1116,11 +1218,12 @@
             RocketPanel.BorderStyle = BorderStyle.FixedSingle;
             RocketPanel.Controls.Add(tableLayoutPanel1);
             RocketPanel.Controls.Add(RocketAlert);
+            RocketPanel.Controls.Add(dat1rocket);
             RocketPanel.ForeColor = Color.AliceBlue;
-            RocketPanel.Location = new Point(30, 30);
+            RocketPanel.Location = new Point(30, 21);
             RocketPanel.Name = "RocketPanel";
             RocketPanel.RightToLeft = RightToLeft.No;
-            RocketPanel.Size = new Size(580, 300);
+            RocketPanel.Size = new Size(580, 309);
             RocketPanel.TabIndex = 0;
             // 
             // tableLayoutPanel1
@@ -1599,7 +1702,7 @@
             RocketAlert.Controls.Add(ALTalert);
             RocketAlert.Controls.Add(GNSSalert);
             RocketAlert.Dock = DockStyle.Bottom;
-            RocketAlert.Location = new Point(0, 248);
+            RocketAlert.Location = new Point(0, 257);
             RocketAlert.Name = "RocketAlert";
             RocketAlert.Size = new Size(578, 50);
             RocketAlert.TabIndex = 0;
@@ -1736,26 +1839,15 @@
             // SettingsPanel
             // 
             SettingsPanel.BackColor = Color.Transparent;
-            SettingsPanel.Controls.Add(label1);
             SettingsPanel.Location = new Point(0, 0);
             SettingsPanel.Name = "SettingsPanel";
             SettingsPanel.Size = new Size(1600, 1000);
             SettingsPanel.TabIndex = 12;
             SettingsPanel.Visible = false;
             // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.ForeColor = SystemColors.Control;
-            label1.Location = new Point(171, 12);
-            label1.Name = "label1";
-            label1.Size = new Size(38, 15);
-            label1.TabIndex = 0;
-            label1.Text = "label1";
-            // 
             // TestStationPanel
             // 
-            TestStationPanel.BackColor = Color.FromArgb(64, 0, 0);
+            TestStationPanel.BackColor = Color.FromArgb(28, 28, 28);
             TestStationPanel.Location = new Point(300, 0);
             TestStationPanel.Name = "TestStationPanel";
             TestStationPanel.Size = new Size(2600, 1000);
@@ -1793,8 +1885,6 @@
             RocketPanel.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             RocketAlert.ResumeLayout(false);
-            SettingsPanel.ResumeLayout(false);
-            SettingsPanel.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1933,7 +2023,14 @@
         private Panel SettingsPanel;
         private Settings settings1;
         private Panel TestStationPanel;
-        private Button ConnectionButton;
-        private Label label1;
+        private Button ConnectButton;
+        private Label dat1rocket;
+        private Button DisconnectButton;
+        private Label messageLabel;
+        private Label dat2payload;
+        private Button ConnectPayloadButton;
+        private Button DisconnectPayloadButton;
+        private Button CameraConnectButton;
+        private Button CameraDisconnectButton;
     }
 }
