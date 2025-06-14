@@ -64,6 +64,7 @@
             cameracheckbutton = new Button();
             label5 = new Label();
             panel3 = new Panel();
+            savetext = new Label();
             savebutton = new Button();
             teadidinput = new TextBox();
             teamidtext = new Label();
@@ -435,6 +436,7 @@
             // panel3
             // 
             panel3.BorderStyle = BorderStyle.FixedSingle;
+            panel3.Controls.Add(savetext);
             panel3.Controls.Add(savebutton);
             panel3.Controls.Add(teadidinput);
             panel3.Controls.Add(teamidtext);
@@ -443,9 +445,18 @@
             panel3.Size = new Size(1560, 301);
             panel3.TabIndex = 14;
             // 
+            // savetext
+            // 
+            savetext.ForeColor = SystemColors.ButtonFace;
+            savetext.Location = new Point(1205, 261);
+            savetext.Name = "savetext";
+            savetext.Size = new Size(322, 38);
+            savetext.TabIndex = 12;
+            savetext.TextAlign = ContentAlignment.MiddleRight;
+            // 
             // savebutton
             // 
-            savebutton.Location = new Point(1443, 244);
+            savebutton.Location = new Point(1443, 227);
             savebutton.Name = "savebutton";
             savebutton.Size = new Size(84, 31);
             savebutton.TabIndex = 14;
@@ -564,5 +575,6 @@
         private TextBox teadidinput;
         private Label teamidtext;
         private Label label1;
+        private Label savetext;
     }
 }

@@ -29,15 +29,15 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Astra));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
             ConnectPayloadButton = new Button();
             DisconnectPayloadButton = new Button();
@@ -113,8 +113,8 @@
             ALTalert2 = new Button();
             GNSSalert2 = new Button();
             CamPanel = new Panel();
-            CameraDisconnectButton = new Button();
             CameraConnectButton = new Button();
+            CameraDisconnectButton = new Button();
             pictureBox1 = new PictureBox();
             GraphPanel = new Panel();
             AccChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
@@ -134,7 +134,7 @@
             dat1absacc = new Label();
             absacctext = new Label();
             dat1wspd = new Label();
-            windspeedtext = new Label();
+            angeltext = new Label();
             dat1accz = new Label();
             accztext = new Label();
             dat1aspd = new Label();
@@ -314,7 +314,7 @@
             // 
             // SettingsButton
             // 
-            SettingsButton.Font = new Font("Verdana", 9.75F);
+            SettingsButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold);
             SettingsButton.Location = new Point(25, 450);
             SettingsButton.Name = "SettingsButton";
             SettingsButton.Size = new Size(250, 50);
@@ -325,7 +325,7 @@
             // 
             // TestStationButton
             // 
-            TestStationButton.Font = new Font("Verdana", 9.75F);
+            TestStationButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold);
             TestStationButton.Location = new Point(25, 375);
             TestStationButton.Name = "TestStationButton";
             TestStationButton.Size = new Size(250, 50);
@@ -336,7 +336,7 @@
             // 
             // GroundStationButton
             // 
-            GroundStationButton.Font = new Font("Verdana", 9.75F);
+            GroundStationButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold);
             GroundStationButton.Location = new Point(25, 300);
             GroundStationButton.Name = "GroundStationButton";
             GroundStationButton.Size = new Size(250, 50);
@@ -348,11 +348,11 @@
             // dat1rocket
             // 
             dat1rocket.BackColor = Color.Transparent;
-            dat1rocket.Font = new Font("Segoe UI", 8F);
+            dat1rocket.Font = new Font("Segoe UI", 7F);
             dat1rocket.ForeColor = SystemColors.Control;
-            dat1rocket.Location = new Point(-1, 236);
+            dat1rocket.Location = new Point(15, 236);
             dat1rocket.Name = "dat1rocket";
-            dat1rocket.Size = new Size(580, 18);
+            dat1rocket.Size = new Size(563, 18);
             dat1rocket.TabIndex = 0;
             // 
             // MainPanel
@@ -455,11 +455,11 @@
             // dat2payload
             // 
             dat2payload.BackColor = Color.Transparent;
-            dat2payload.Font = new Font("Segoe UI", 8F);
+            dat2payload.Font = new Font("Segoe UI", 7F);
             dat2payload.ForeColor = SystemColors.Control;
-            dat2payload.Location = new Point(0, 236);
+            dat2payload.Location = new Point(15, 236);
             dat2payload.Name = "dat2payload";
-            dat2payload.Size = new Size(579, 18);
+            dat2payload.Size = new Size(564, 18);
             dat2payload.TabIndex = 2;
             // 
             // tableLayoutPanel2
@@ -1082,16 +1082,6 @@
             CamPanel.Size = new Size(770, 625);
             CamPanel.TabIndex = 4;
             // 
-            // CameraDisconnectButton
-            // 
-            CameraDisconnectButton.Location = new Point(39, 14);
-            CameraDisconnectButton.Name = "CameraDisconnectButton";
-            CameraDisconnectButton.Size = new Size(75, 23);
-            CameraDisconnectButton.TabIndex = 2;
-            CameraDisconnectButton.Text = "Disconnect";
-            CameraDisconnectButton.UseVisualStyleBackColor = true;
-            CameraDisconnectButton.Visible = false;
-            // 
             // CameraConnectButton
             // 
             CameraConnectButton.Location = new Point(39, 14);
@@ -1101,6 +1091,16 @@
             CameraConnectButton.Text = "Connect";
             CameraConnectButton.UseVisualStyleBackColor = true;
             CameraConnectButton.Click += CameraConnectButton_Click;
+            // 
+            // CameraDisconnectButton
+            // 
+            CameraDisconnectButton.Location = new Point(39, 14);
+            CameraDisconnectButton.Name = "CameraDisconnectButton";
+            CameraDisconnectButton.Size = new Size(75, 23);
+            CameraDisconnectButton.TabIndex = 2;
+            CameraDisconnectButton.Text = "Disconnect";
+            CameraDisconnectButton.UseVisualStyleBackColor = true;
+            CameraDisconnectButton.Visible = false;
             // 
             // pictureBox1
             // 
@@ -1124,64 +1124,64 @@
             // 
             // AccChart
             // 
-            chartArea1.AxisX.Title = "Time(s)";
-            chartArea1.AxisY.Title = "Absolute Accleration(m/s²)";
-            chartArea1.BackImageAlignment = System.Windows.Forms.DataVisualization.Charting.ChartImageAlignmentStyle.Bottom;
-            chartArea1.Name = "ChartArea1";
-            AccChart.ChartAreas.Add(chartArea1);
-            legend1.Enabled = false;
-            legend1.Name = "Legend1";
-            AccChart.Legends.Add(legend1);
+            chartArea4.AxisX.Title = "Time(s)";
+            chartArea4.AxisY.Title = "Absolute Accleration(m/s²)";
+            chartArea4.BackImageAlignment = System.Windows.Forms.DataVisualization.Charting.ChartImageAlignmentStyle.Bottom;
+            chartArea4.Name = "ChartArea1";
+            AccChart.ChartAreas.Add(chartArea4);
+            legend4.Enabled = false;
+            legend4.Name = "Legend1";
+            AccChart.Legends.Add(legend4);
             AccChart.Location = new Point(22, 319);
             AccChart.Name = "AccChart";
             AccChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series1.Legend = "Legend1";
-            series1.Name = "Abs Acc(m/s²)";
-            AccChart.Series.Add(series1);
+            series4.ChartArea = "ChartArea1";
+            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series4.Legend = "Legend1";
+            series4.Name = "Abs Acc(m/s²)";
+            AccChart.Series.Add(series4);
             AccChart.Size = new Size(340, 290);
             AccChart.TabIndex = 3;
             AccChart.Text = "chart3";
             // 
             // SpdChart
             // 
-            chartArea2.AxisX.Title = "Time(s)";
-            chartArea2.AxisY.Title = "Ground Speed(m/s)";
-            chartArea2.Name = "ChartArea1";
-            SpdChart.ChartAreas.Add(chartArea2);
-            legend2.Enabled = false;
-            legend2.Name = "Legend1";
-            SpdChart.Legends.Add(legend2);
+            chartArea5.AxisX.Title = "Time(s)";
+            chartArea5.AxisY.Title = "Ground Speed(m/s)";
+            chartArea5.Name = "ChartArea1";
+            SpdChart.ChartAreas.Add(chartArea5);
+            legend5.Enabled = false;
+            legend5.Name = "Legend1";
+            SpdChart.Legends.Add(legend5);
             SpdChart.Location = new Point(384, 14);
             SpdChart.Name = "SpdChart";
             SpdChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series2.Legend = "Legend1";
-            series2.Name = "Ground Speed(m/s)";
-            SpdChart.Series.Add(series2);
+            series5.ChartArea = "ChartArea1";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series5.Legend = "Legend1";
+            series5.Name = "Ground Speed(m/s)";
+            SpdChart.Series.Add(series5);
             SpdChart.Size = new Size(340, 290);
             SpdChart.TabIndex = 2;
             SpdChart.Text = "chart2";
             // 
             // AltChart
             // 
-            chartArea3.AxisX.Title = "Time(s)";
-            chartArea3.AxisY.Title = "Altitute(m)";
-            chartArea3.Name = "ChartArea1";
-            AltChart.ChartAreas.Add(chartArea3);
-            legend3.Enabled = false;
-            legend3.Name = "Legend1";
-            AltChart.Legends.Add(legend3);
+            chartArea6.AxisX.Title = "Time(s)";
+            chartArea6.AxisY.Title = "Altitute(m)";
+            chartArea6.Name = "ChartArea1";
+            AltChart.ChartAreas.Add(chartArea6);
+            legend6.Enabled = false;
+            legend6.Name = "Legend1";
+            AltChart.Legends.Add(legend6);
             AltChart.Location = new Point(22, 14);
             AltChart.Name = "AltChart";
             AltChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series3.Legend = "Legend1";
-            series3.Name = "Altitute(m)";
-            AltChart.Series.Add(series3);
+            series6.ChartArea = "ChartArea1";
+            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series6.Legend = "Legend1";
+            series6.Name = "Altitute(m)";
+            AltChart.Series.Add(series6);
             AltChart.Size = new Size(340, 290);
             AltChart.TabIndex = 1;
             AltChart.Text = "chart1";
@@ -1247,7 +1247,7 @@
             tableLayoutPanel1.Controls.Add(dat1absacc, 3, 6);
             tableLayoutPanel1.Controls.Add(absacctext, 2, 6);
             tableLayoutPanel1.Controls.Add(dat1wspd, 1, 6);
-            tableLayoutPanel1.Controls.Add(windspeedtext, 0, 6);
+            tableLayoutPanel1.Controls.Add(angeltext, 0, 6);
             tableLayoutPanel1.Controls.Add(dat1accz, 3, 5);
             tableLayoutPanel1.Controls.Add(accztext, 2, 5);
             tableLayoutPanel1.Controls.Add(dat1aspd, 1, 5);
@@ -1393,14 +1393,14 @@
             dat1wspd.Text = "--";
             dat1wspd.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // windspeedtext
+            // angeltext
             // 
-            windspeedtext.Location = new Point(4, 187);
-            windspeedtext.Name = "windspeedtext";
-            windspeedtext.Size = new Size(94, 30);
-            windspeedtext.TabIndex = 36;
-            windspeedtext.Text = "Wind Speed[m/s]:";
-            windspeedtext.TextAlign = ContentAlignment.MiddleRight;
+            angeltext.Location = new Point(4, 187);
+            angeltext.Name = "angeltext";
+            angeltext.Size = new Size(94, 30);
+            angeltext.TabIndex = 36;
+            angeltext.Text = "Angle[°]:";
+            angeltext.TextAlign = ContentAlignment.MiddleRight;
             // 
             // dat1accz
             // 
@@ -1946,7 +1946,7 @@
         private Label dat1absacc;
         private Label absacctext;
         private Label dat1wspd;
-        private Label windspeedtext;
+        private Label angeltext;
         private Label accztext;
         private Label gyroxtext;
         private Label voltagetext;

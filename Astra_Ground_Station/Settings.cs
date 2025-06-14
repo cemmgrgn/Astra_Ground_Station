@@ -43,9 +43,20 @@ namespace Astra_Ground_Station
 
             cameraPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             cameraPictureBox.Anchor = AnchorStyles.None;
+
+            // Settings tabı görünür olunca otomatik port yenile
+            this.VisibleChanged += Settings_VisibleChanged;
         }
 
-        private void PopulateSerialPortCombos()
+        private void Settings_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.Visible)
+            {
+                PopulateSerialPortCombos();
+            }
+        }
+
+        public void PopulateSerialPortCombos()
         {
             string[] ports = SerialPort.GetPortNames();
             dat1com.Items.Clear();
@@ -231,7 +242,21 @@ namespace Astra_Ground_Station
         private void saveButton_Click(object sender, EventArgs e)
         {
             SaveSettingsToCsv();
-            MessageBox.Show("Ayarlar kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            SetLabelTextWithTimeout(savetext, "Configuration saved.");
+        }
+
+        private void SetLabelTextWithTimeout(Label label, string text, int timeoutMs = 5000)
+        {
+            label.Text = text;
+            var timer = new System.Windows.Forms.Timer();
+            timer.Interval = timeoutMs;
+            timer.Tick += (s, e) =>
+            {
+                label.Text = "";
+                timer.Stop();
+                timer.Dispose();
+            };
+            timer.Start();
         }
 
         private void SaveSettingsToCsv()
@@ -244,9 +269,9 @@ namespace Astra_Ground_Station
                 sw.WriteLine($"PayloadBaud,{dat2baud.Text}");
                 sw.WriteLine($"HYICom,{dat3com.Text}");
                 sw.WriteLine($"HYIBaud,{dat3baud.Text}");
-                sw.WriteLine($"HYIHertz,{HYIhertz.Text}"); // Eğer textbox adı buysa
+                sw.WriteLine($"HYIHertz,{HYIhertz.Text}");
                 sw.WriteLine($"Camera,{cameraCombo.Text}");
-                sw.WriteLine($"TeamID,{teadidinput.Text}"); // Eğer textbox adı buysa
+                sw.WriteLine($"TeamID,{teadidinput.Text}");
             }
         }
 
@@ -308,16 +333,11 @@ namespace Astra_Ground_Station
                 combo.SelectedIndex = combo.Items.Count - 1;
             }
         }
-
-        // Boş eventler:
         private void dat1baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat1com_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat2baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat2com_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat3baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat3com_SelectedIndexChanged(object sender, EventArgs e) { }
-
-        // Not: hyiHertzTextBox ve teamIdTextBox isimlerini kendi projenle uyumlu hale getir!
-        // Not: saveButton, formundaki Save butonu olmalı.
     }
 }

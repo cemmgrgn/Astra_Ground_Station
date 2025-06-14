@@ -33,6 +33,7 @@ namespace Astra_Ground_Station
         private double[] accPayloadBuffer = new double[MaxChartPoints];
 
         private System.Windows.Forms.Timer chartUpdateTimer;
+        private System.Windows.Forms.Timer serialReconnectTimer;
         private bool hasNewRocketData = false;
         private bool hasNewPayloadData = false;
 
@@ -40,6 +41,44 @@ namespace Astra_Ground_Station
         private double lastAltPayload = 0, lastSdpPayload = 0, lastAccPayload = 0;
 
         private double? lastMapLat = null, lastMapLon = null;
+
+        private double? lastPressure = null;
+        private double? lastAccVal = null;
+
+        private double? lastPayloadPressure = null;
+        private double? lastPayloadAccVal = null;
+
+        private DateTime lastAltAlertChange = DateTime.MinValue;
+        private DateTime lastIMUAlertChange = DateTime.MinValue;
+        private bool altChangedRecently = false;
+        private bool imuChangedRecently = false;
+
+        private DateTime lastPayloadAltAlertChange = DateTime.MinValue;
+        private DateTime lastPayloadIMUAlertChange = DateTime.MinValue;
+        private bool payloadAltChangedRecently = false;
+        private bool payloadIMUChangedRecently = false;
+
+        private DateTime lastGNSSAlertChange = DateTime.MinValue;
+        private bool gnssChangedRecently = false;
+        private double? lastGNSSLon = null;
+
+        private DateTime lastPayloadGNSSAlertChange = DateTime.MinValue;
+        private bool payloadGNSSChangedRecently = false;
+        private double? lastPayloadGNSSLon = null;
+
+        private System.Windows.Forms.Timer alertTimeoutTimer;
+
+        private Color ALTalertBorderColor = Color.LightSkyBlue;
+        private Color IMUalertBorderColor = Color.LightSkyBlue;
+        private Color FSCalertBorderColor = Color.Crimson;
+        private Color GNSSalertBorderColor = Color.Crimson;
+        private Color FRSalertBorderColor = Color.LightSkyBlue;
+        private Color SRSalertBorderColor = Color.LightSkyBlue;
+
+        private Color ALTalertPayloadBorderColor = Color.LightSkyBlue;
+        private Color IMUalertPayloadBorderColor = Color.LightSkyBlue;
+        private Color FSCalertPayloadBorderColor = Color.Crimson;
+        private Color GNSSalertPayloadBorderColor = Color.Crimson;
 
         public Astra()
         {
@@ -73,6 +112,30 @@ namespace Astra_Ground_Station
             chartUpdateTimer.Interval = 1000;
             chartUpdateTimer.Tick += ChartUpdateTimer_Tick;
             chartUpdateTimer.Start();
+
+            serialReconnectTimer = new System.Windows.Forms.Timer();
+            serialReconnectTimer.Interval = 2000;
+            serialReconnectTimer.Tick += SerialReconnectTimer_Tick;
+            serialReconnectTimer.Start();
+
+            alertTimeoutTimer = new System.Windows.Forms.Timer();
+            alertTimeoutTimer.Interval = 500;
+            alertTimeoutTimer.Tick += AlertTimeoutTimer_Tick;
+            alertTimeoutTimer.Start();
+
+            Control.CheckForIllegalCrossThreadCalls = false;
+
+            ALTalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, ALTalert.ClientRectangle, ALTalertBorderColor, ButtonBorderStyle.Solid);
+            IMUalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, IMUalert.ClientRectangle, IMUalertBorderColor, ButtonBorderStyle.Solid);
+            FSCalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, FSCalert.ClientRectangle, FSCalertBorderColor, ButtonBorderStyle.Solid);
+            GNSSalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, GNSSalert.ClientRectangle, GNSSalertBorderColor, ButtonBorderStyle.Solid);
+            FRSalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, FRSalert.ClientRectangle, FRSalertBorderColor, ButtonBorderStyle.Solid);
+            SRSalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, SRSalert.ClientRectangle, SRSalertBorderColor, ButtonBorderStyle.Solid);
+
+            ALTalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, ALTalert2.ClientRectangle, ALTalertPayloadBorderColor, ButtonBorderStyle.Solid);
+            IMUalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, IMUalert2.ClientRectangle, IMUalertPayloadBorderColor, ButtonBorderStyle.Solid);
+            FSCalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, FSCalert2.ClientRectangle, FSCalertPayloadBorderColor, ButtonBorderStyle.Solid);
+            GNSSalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, GNSSalert.ClientRectangle, GNSSalertPayloadBorderColor, ButtonBorderStyle.Solid);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -95,17 +158,17 @@ namespace Astra_Ground_Station
         private void SetupChartSeries(System.Windows.Forms.DataVisualization.Charting.Chart chart, string rocketName, string payloadName)
         {
             chart.Series.Clear();
-            var rocketSeries = chart.Series.Add(rocketName);
-            rocketSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            rocketSeries.Color = Color.Purple;
-            rocketSeries.BorderWidth = 2;
-            rocketSeries.LegendText = "Rocket";
-
             var payloadSeries = chart.Series.Add(payloadName);
             payloadSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
             payloadSeries.Color = Color.LightBlue;
             payloadSeries.BorderWidth = 2;
             payloadSeries.LegendText = "Payload";
+
+            var rocketSeries = chart.Series.Add(rocketName);
+            rocketSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            rocketSeries.Color = Color.Purple;
+            rocketSeries.BorderWidth = 2;
+            rocketSeries.LegendText = "Rocket";
         }
 
         private void RocketMap_OnMapZoomChanged()
@@ -160,7 +223,7 @@ namespace Astra_Ground_Station
 
                 if (string.IsNullOrEmpty(cameraMonikerString))
                 {
-                    messageLabel.Text = "Kamera portu settings.csv dosyasında bulunamadı!";
+                    messageLabel.Text = "Camera port could not be found in settings.csv!";
                     return;
                 }
 
@@ -177,7 +240,7 @@ namespace Astra_Ground_Station
 
                 if (selectedDevice == null)
                 {
-                    messageLabel.Text = "Ayarlanan kamera porta karşılık gelen cihaz bulunamadı!";
+                    messageLabel.Text = "No device was found corresponding to the configured camera port!";
                     return;
                 }
 
@@ -187,7 +250,7 @@ namespace Astra_Ground_Station
                 videoSource.NewFrame += videoSource_NewFrame;
                 videoSource.Start();
 
-                messageLabel.Text = "Kamera başarıyla başlatıldı.";
+                messageLabel.Text = "Camera started successfully.";
 
                 CameraConnectButton.Enabled = false;
                 CameraConnectButton.Visible = false;
@@ -196,16 +259,15 @@ namespace Astra_Ground_Station
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Kamera başlatılırken hata: " + ex.Message;
+                messageLabel.Text = "Error while starting camera: " + ex.Message;
             }
         }
-
         private void CameraDisconnectButton_Click(object sender, EventArgs e)
         {
             try
             {
                 StopCamera();
-                messageLabel.Text = "Kamera bağlantısı kapatıldı.";
+                messageLabel.Text = "Camera connection closed.";
 
                 CameraConnectButton.Enabled = true;
                 CameraConnectButton.Visible = true;
@@ -214,10 +276,9 @@ namespace Astra_Ground_Station
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Kamera bağlantısı kapatılamadı: " + ex.Message;
+                messageLabel.Text = "Camera could not be disconnected: " + ex.Message;
             }
         }
-
         private void StopCamera()
         {
             if (videoSource != null)
@@ -244,10 +305,11 @@ namespace Astra_Ground_Station
             }
         }
 
-
         private void Astra_FormClosing(object sender, FormClosingEventArgs e)
         {
             chartUpdateTimer?.Stop();
+            serialReconnectTimer?.Stop();
+            alertTimeoutTimer?.Stop();
             StopCamera();
             CloseSerialPorts();
             ConnectButton.Enabled = false;
@@ -310,7 +372,7 @@ namespace Astra_Ground_Station
             string settingsFile = "settings.csv";
             string rocketCom = "COM100";
             int rocketBaud = 9600;
-            string payloadCom = "COM5";
+            string payloadCom = "COM102";
             int payloadBaud = 9600;
 
             try
@@ -356,6 +418,9 @@ namespace Astra_Ground_Station
                     var (rocketPort, rocketBaud, _, _) = ReadSerialSettings();
 
                     serialPortRocket = new SerialPort(rocketPort, rocketBaud, Parity.None, 8, StopBits.One);
+                    serialPortRocket.RtsEnable = true;
+                    serialPortRocket.DtrEnable = true;
+
                     serialPortRocket.DataReceived += SerialPortRocket_DataReceived;
                     serialPortRocket.Open();
                     messageLabel.Text = $"Rocket Connected ({rocketPort}, {rocketBaud} baud).";
@@ -397,6 +462,9 @@ namespace Astra_Ground_Station
                     var (_, _, payloadPort, payloadBaud) = ReadSerialSettings();
 
                     serialPortPayload = new SerialPort(payloadPort, payloadBaud, Parity.None, 8, StopBits.One);
+                    serialPortPayload.RtsEnable = true;
+                    serialPortPayload.DtrEnable = true;
+
                     serialPortPayload.DataReceived += SerialPortPayload_DataReceived;
                     serialPortPayload.Open();
                     messageLabel.Text = $"Payload Connected ({payloadPort}, {payloadBaud} baud).";
@@ -479,6 +547,9 @@ namespace Astra_Ground_Station
                                 lastMapLat = rocketLat;
                                 lastMapLon = rocketLon;
                             }
+
+                            UpdateStatusAlerts();
+                            UpdateSensorAlerts();
                         });
                     }
                     else
@@ -542,6 +613,8 @@ namespace Astra_Ground_Station
                             if (double.TryParse(dat2gspd.Text, out double gspdVal)) lastSdpPayload = gspdVal;
                             if (double.TryParse(dat2absacc.Text, out double absaccVal)) lastAccPayload = absaccVal;
                             hasNewPayloadData = true;
+
+                            UpdateSensorAlertsPayload();
                         });
                     }
                     else
@@ -599,16 +672,16 @@ namespace Astra_Ground_Station
 
         private void UpdateChart2Series(System.Windows.Forms.DataVisualization.Charting.Chart chart, double[] buffer1, double[] buffer2)
         {
-            var seriesRocket = chart.Series[0];
-            var seriesPayload = chart.Series[1];
-            seriesRocket.Points.Clear();
+            var seriesPayload = chart.Series[0];
+            var seriesRocket = chart.Series[1];
             seriesPayload.Points.Clear();
+            seriesRocket.Points.Clear();
             for (int i = 0; i < MaxChartPoints; i++)
             {
                 int x = sampleIndex - MaxChartPoints + 1 + i;
                 if (x < 0) x = 0;
-                seriesRocket.Points.AddXY(x, buffer1[i]);
                 seriesPayload.Points.AddXY(x, buffer2[i]);
+                seriesRocket.Points.AddXY(x, buffer1[i]);
             }
         }
 
@@ -654,6 +727,258 @@ namespace Astra_Ground_Station
         {
             CloseSerialPortRocket();
             CloseSerialPortPayload();
+        }
+
+        private void SerialReconnectTimer_Tick(object sender, EventArgs e)
+        {
+            if ((serialPortRocket == null || !serialPortRocket.IsOpen) && !ConnectButton.Enabled)
+            {
+                try { ConnectButton_Click(null, null); } catch { }
+            }
+            if ((serialPortPayload == null || !serialPortPayload.IsOpen) && !ConnectPayloadButton.Enabled)
+            {
+                try { ConnectPayloadButton_Click(null, null); } catch { }
+            }
+        }
+
+        private void SetAlertGreen(Control alert)
+        {
+            alert.ForeColor = Color.Green;
+            SetAlertBorderColor(alert, Color.Green);
+        }
+
+        private void SetAlertCyan(Control alert)
+        {
+            alert.ForeColor = Color.LightSkyBlue;
+            SetAlertBorderColor(alert, Color.LightSkyBlue);
+        }
+
+        private void SetAlertRed(Control alert)
+        {
+            alert.ForeColor = Color.Crimson;
+            SetAlertBorderColor(alert, Color.Crimson);
+        }
+
+        private void SetAlertBorderColor(Control alert, Color color)
+        {
+            if (alert == ALTalert) ALTalertBorderColor = color;
+            else if (alert == IMUalert) IMUalertBorderColor = color;
+            else if (alert == FSCalert) FSCalertBorderColor = color;
+            else if (alert == GNSSalert) GNSSalertBorderColor = color;
+            else if (alert == FRSalert) FRSalertBorderColor = color;
+            else if (alert == SRSalert) SRSalertBorderColor = color;
+            else if (alert == ALTalert2) ALTalertPayloadBorderColor = color;
+            else if (alert == IMUalert2) IMUalertPayloadBorderColor = color;
+            else if (alert == FSCalert2) FSCalertPayloadBorderColor = color;
+            else if (alert == GNSSalert2) GNSSalertPayloadBorderColor = color;
+            alert.Invalidate();
+        }
+
+        private void UpdateFSCalert()
+        {
+            if (!altChangedRecently && !imuChangedRecently)
+            {
+                SetAlertRed(FSCalert);
+            }
+            else if (altChangedRecently && imuChangedRecently)
+            {
+                SetAlertGreen(FSCalert);
+            }
+            else
+            {
+                SetAlertCyan(FSCalert);
+            }
+        }
+
+        private void UpdateFSCalertPayload()
+        {
+            if (!payloadAltChangedRecently && !payloadIMUChangedRecently)
+            {
+                SetAlertRed(FSCalert2);
+            }
+            else if (payloadAltChangedRecently && payloadIMUChangedRecently)
+            {
+                SetAlertGreen(FSCalert2);
+            }
+            else
+            {
+                SetAlertCyan(FSCalert2);
+            }
+        }
+
+        private void UpdateStatusAlerts()
+        {
+            int.TryParse(dat1sts.Text, out int status);
+
+            if (status == 2)
+            {
+                SetAlertGreen(FRSalert);
+                SetAlertCyan(SRSalert);
+            }
+            else if (status == 4)
+            {
+                SetAlertGreen(FRSalert);
+                SetAlertGreen(SRSalert);
+            }
+            else
+            {
+                SetAlertCyan(FRSalert);
+                SetAlertCyan(SRSalert);
+            }
+        }
+
+        private void UpdateSensorAlerts()
+        {
+            if (double.TryParse(dat1pre.Text, out double pressure))
+            {
+                if (!lastPressure.HasValue || lastPressure.Value != pressure)
+                {
+                    SetAlertGreen(ALTalert);
+                    lastAltAlertChange = DateTime.Now;
+                    altChangedRecently = true;
+                }
+                lastPressure = pressure;
+            }
+
+            if (double.TryParse(dat1absacc.Text, out double accVal))
+            {
+                if (!lastAccVal.HasValue || lastAccVal.Value != accVal)
+                {
+                    SetAlertGreen(IMUalert);
+                    lastIMUAlertChange = DateTime.Now;
+                    imuChangedRecently = true;
+                }
+                lastAccVal = accVal;
+            }
+
+            if (double.TryParse(dat1lon.Text, out double lonVal))
+            {
+                if (!lastGNSSLon.HasValue || lastGNSSLon.Value != lonVal)
+                {
+                    SetAlertGreen(GNSSalert);
+                    lastGNSSAlertChange = DateTime.Now;
+                    gnssChangedRecently = true;
+                }
+                lastGNSSLon = lonVal;
+
+                if (lonVal != 0)
+                {
+                }
+                else
+                {
+                    SetAlertRed(GNSSalert);
+                }
+            }
+            else
+            {
+                SetAlertRed(GNSSalert);
+            }
+
+            UpdateFSCalert();
+        }
+
+        private void UpdateSensorAlertsPayload()
+        {
+            if (double.TryParse(dat2pre.Text, out double pressure))
+            {
+                if (!lastPayloadPressure.HasValue || lastPayloadPressure.Value != pressure)
+                {
+                    SetAlertGreen(ALTalert2);
+                    lastPayloadAltAlertChange = DateTime.Now;
+                    payloadAltChangedRecently = true;
+                }
+                lastPayloadPressure = pressure;
+            }
+
+            if (double.TryParse(dat2absacc.Text, out double accVal))
+            {
+                if (!lastPayloadAccVal.HasValue || lastPayloadAccVal.Value != accVal)
+                {
+                    SetAlertGreen(IMUalert2);
+                    lastPayloadIMUAlertChange = DateTime.Now;
+                    payloadIMUChangedRecently = true;
+                }
+                lastPayloadAccVal = accVal;
+            }
+
+            if (double.TryParse(dat2lon.Text, out double lonVal))
+            {
+                if (!lastPayloadGNSSLon.HasValue || lastPayloadGNSSLon.Value != lonVal)
+                {
+                    SetAlertGreen(GNSSalert2);
+                    lastPayloadGNSSAlertChange = DateTime.Now;
+                    payloadGNSSChangedRecently = true;
+                }
+                lastPayloadGNSSLon = lonVal;
+
+                if (lonVal != 0)
+                {
+                }
+                else
+                {
+                    SetAlertRed(GNSSalert2);
+                }
+            }
+            else
+            {
+                SetAlertRed(GNSSalert2);
+            }
+
+            UpdateFSCalertPayload();
+        }
+
+        private void AlertTimeoutTimer_Tick(object sender, EventArgs e)
+        {
+            bool altWasRecently = altChangedRecently;
+            bool imuWasRecently = imuChangedRecently;
+            bool payloadAltWasRecently = payloadAltChangedRecently;
+            bool payloadIMUWasRecently = payloadIMUChangedRecently;
+
+            if ((DateTime.Now - lastAltAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(ALTalert);
+                altChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastIMUAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(IMUalert);
+                imuChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastGNSSAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(GNSSalert);
+                gnssChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadAltAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(ALTalert2);
+                payloadAltChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadIMUAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(IMUalert2);
+                payloadIMUChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadGNSSAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(GNSSalert2);
+                payloadGNSSChangedRecently = false;
+            }
+
+            if (altWasRecently != altChangedRecently || imuWasRecently != imuChangedRecently)
+            {
+                UpdateFSCalert();
+            }
+
+            if (payloadAltWasRecently != payloadAltChangedRecently || payloadIMUWasRecently != payloadIMUChangedRecently)
+            {
+                UpdateFSCalertPayload();
+            }
         }
     }
 }
