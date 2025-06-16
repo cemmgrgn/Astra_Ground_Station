@@ -70,6 +70,8 @@
             teamidtext = new Label();
             label7 = new Label();
             label1 = new Label();
+            rocketlogcheck = new CheckBox();
+            payloadlogcheck = new CheckBox();
             RocketPort.SuspendLayout();
             PayloadPort.SuspendLayout();
             HYIport.SuspendLayout();
@@ -436,6 +438,8 @@
             // panel3
             // 
             panel3.BorderStyle = BorderStyle.FixedSingle;
+            panel3.Controls.Add(payloadlogcheck);
+            panel3.Controls.Add(rocketlogcheck);
             panel3.Controls.Add(savetext);
             panel3.Controls.Add(savebutton);
             panel3.Controls.Add(teadidinput);
@@ -502,6 +506,30 @@
             label1.Size = new Size(188, 18);
             label1.TabIndex = 7;
             label1.Text = "Rocket Port Settings";
+            // 
+            // rocketlogcheck
+            // 
+            rocketlogcheck.AutoSize = true;
+            rocketlogcheck.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            rocketlogcheck.ForeColor = SystemColors.ControlLightLight;
+            rocketlogcheck.Location = new Point(34, 99);
+            rocketlogcheck.Name = "rocketlogcheck";
+            rocketlogcheck.Size = new Size(169, 20);
+            rocketlogcheck.TabIndex = 17;
+            rocketlogcheck.Text = "Save Log for Rocket";
+            rocketlogcheck.UseVisualStyleBackColor = true;
+            // 
+            // payloadlogcheck
+            // 
+            payloadlogcheck.AutoSize = true;
+            payloadlogcheck.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            payloadlogcheck.ForeColor = SystemColors.ControlLightLight;
+            payloadlogcheck.Location = new Point(34, 125);
+            payloadlogcheck.Name = "payloadlogcheck";
+            payloadlogcheck.Size = new Size(178, 20);
+            payloadlogcheck.TabIndex = 18;
+            payloadlogcheck.Text = "Save Log for Payload";
+            payloadlogcheck.UseVisualStyleBackColor = true;
             // 
             // Settings
             // 
@@ -576,5 +604,7 @@
         private Label teamidtext;
         private Label label1;
         private Label savetext;
+        private CheckBox payloadlogcheck;
+        private CheckBox rocketlogcheck;
     }
 }

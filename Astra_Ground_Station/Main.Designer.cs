@@ -39,6 +39,8 @@
             System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
+            DisconnectHYIButton = new Button();
+            ConnectHYIButton = new Button();
             ConnectPayloadButton = new Button();
             DisconnectPayloadButton = new Button();
             messageLabel = new Label();
@@ -133,7 +135,7 @@
             dat1sts = new Label();
             dat1absacc = new Label();
             absacctext = new Label();
-            dat1wspd = new Label();
+            dat1ang = new Label();
             angeltext = new Label();
             dat1accz = new Label();
             accztext = new Label();
@@ -197,6 +199,8 @@
             // SideMenu
             // 
             SideMenu.BackColor = Color.FromArgb(40, 40, 40);
+            SideMenu.Controls.Add(DisconnectHYIButton);
+            SideMenu.Controls.Add(ConnectHYIButton);
             SideMenu.Controls.Add(ConnectPayloadButton);
             SideMenu.Controls.Add(DisconnectPayloadButton);
             SideMenu.Controls.Add(messageLabel);
@@ -213,7 +217,34 @@
             SideMenu.Name = "SideMenu";
             SideMenu.Size = new Size(300, 1001);
             SideMenu.TabIndex = 1;
-            SideMenu.Paint += SideMenu_Paint;
+            // 
+            // DisconnectHYIButton
+            // 
+            DisconnectHYIButton.BackColor = Color.White;
+            DisconnectHYIButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            DisconnectHYIButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            DisconnectHYIButton.ForeColor = Color.Crimson;
+            DisconnectHYIButton.Location = new Point(25, 817);
+            DisconnectHYIButton.Name = "DisconnectHYIButton";
+            DisconnectHYIButton.Size = new Size(250, 50);
+            DisconnectHYIButton.TabIndex = 16;
+            DisconnectHYIButton.Text = "Disconnect HYI";
+            DisconnectHYIButton.UseVisualStyleBackColor = false;
+            DisconnectHYIButton.Visible = false;
+            // 
+            // ConnectHYIButton
+            // 
+            ConnectHYIButton.BackColor = Color.White;
+            ConnectHYIButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            ConnectHYIButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ConnectHYIButton.ForeColor = Color.DarkGreen;
+            ConnectHYIButton.Location = new Point(25, 761);
+            ConnectHYIButton.Name = "ConnectHYIButton";
+            ConnectHYIButton.RightToLeft = RightToLeft.Yes;
+            ConnectHYIButton.Size = new Size(250, 50);
+            ConnectHYIButton.TabIndex = 15;
+            ConnectHYIButton.Text = "Connect HYI";
+            ConnectHYIButton.UseVisualStyleBackColor = false;
             // 
             // ConnectPayloadButton
             // 
@@ -1246,7 +1277,7 @@
             tableLayoutPanel1.Controls.Add(dat1sts, 5, 6);
             tableLayoutPanel1.Controls.Add(dat1absacc, 3, 6);
             tableLayoutPanel1.Controls.Add(absacctext, 2, 6);
-            tableLayoutPanel1.Controls.Add(dat1wspd, 1, 6);
+            tableLayoutPanel1.Controls.Add(dat1ang, 1, 6);
             tableLayoutPanel1.Controls.Add(angeltext, 0, 6);
             tableLayoutPanel1.Controls.Add(dat1accz, 3, 5);
             tableLayoutPanel1.Controls.Add(accztext, 2, 5);
@@ -1383,15 +1414,15 @@
             absacctext.Text = "Absolute Acc [m/s²]:";
             absacctext.TextAlign = ContentAlignment.MiddleRight;
             // 
-            // dat1wspd
+            // dat1ang
             // 
-            dat1wspd.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dat1wspd.Location = new Point(105, 187);
-            dat1wspd.Name = "dat1wspd";
-            dat1wspd.Size = new Size(74, 30);
-            dat1wspd.TabIndex = 37;
-            dat1wspd.Text = "--";
-            dat1wspd.TextAlign = ContentAlignment.MiddleLeft;
+            dat1ang.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dat1ang.Location = new Point(105, 187);
+            dat1ang.Name = "dat1ang";
+            dat1ang.Size = new Size(74, 30);
+            dat1ang.TabIndex = 37;
+            dat1ang.Text = "--";
+            dat1ang.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // angeltext
             // 
@@ -1867,7 +1898,6 @@
             Name = "Astra";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Astra Ground Station";
-            Load += Form1_Load;
             SideMenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)AltLogo).EndInit();
             ((System.ComponentModel.ISupportInitialize)AstraLogo).EndInit();
@@ -1945,7 +1975,7 @@
         private Label dat1sts;
         private Label dat1absacc;
         private Label absacctext;
-        private Label dat1wspd;
+        private Label dat1ang;
         private Label angeltext;
         private Label accztext;
         private Label gyroxtext;
@@ -2032,5 +2062,7 @@
         private Button DisconnectPayloadButton;
         private Button CameraConnectButton;
         private Button CameraDisconnectButton;
+        private Button DisconnectHYIButton;
+        private Button ConnectHYIButton;
     }
 }

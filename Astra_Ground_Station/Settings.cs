@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using System.Text.Json;
 
 namespace Astra_Ground_Station
 {
@@ -12,7 +13,7 @@ namespace Astra_Ground_Station
     {
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
-        private readonly string settingsFile = "settings.csv";
+        private readonly string settingsFile = "settings.json";
 
         public Settings()
         {
@@ -21,7 +22,7 @@ namespace Astra_Ground_Station
             PopulateBaudRateCombos();
             PopulateCameraCombo();
 
-            LoadSettingsFromCsv();
+            LoadSettingsFromFile();
 
             checkbutton.Click += checkbutton_Click;
             checkbutton2.Click += checkbutton2_Click;
@@ -32,7 +33,7 @@ namespace Astra_Ground_Station
 
             cameraCombo.SelectedIndexChanged += cameraCombo_SelectedIndexChanged;
             camerarefreshbutton.Click += camerarefreshbutton_Click;
-            savebutton.Click += saveButton_Click;
+            savebutton.Click += savebutton_Click;
 
             dat1baud.SelectedIndexChanged += dat1baud_SelectedIndexChanged;
             dat1com.SelectedIndexChanged += dat1com_SelectedIndexChanged;
@@ -41,10 +42,12 @@ namespace Astra_Ground_Station
             dat3baud.SelectedIndexChanged += dat3baud_SelectedIndexChanged;
             dat3com.SelectedIndexChanged += dat3com_SelectedIndexChanged;
 
+            rocketlogcheck.CheckedChanged += rocketlogcheck_CheckedChanged;
+            payloadlogcheck.CheckedChanged += payloadlogcheck_CheckedChanged;
+
             cameraPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             cameraPictureBox.Anchor = AnchorStyles.None;
 
-            // Settings tabı görünür olunca otomatik port yenile
             this.VisibleChanged += Settings_VisibleChanged;
         }
 
@@ -239,9 +242,9 @@ namespace Astra_Ground_Station
             PopulateSerialPortCombos();
         }
 
-        private void saveButton_Click(object sender, EventArgs e)
+        private void savebutton_Click(object sender, EventArgs e)
         {
-            SaveSettingsToCsv();
+            SaveSettingsToFile();
             SetLabelTextWithTimeout(savetext, "Configuration saved.");
         }
 
@@ -259,67 +262,46 @@ namespace Astra_Ground_Station
             timer.Start();
         }
 
-        private void SaveSettingsToCsv()
+        private void SaveSettingsToFile()
         {
-            using (var sw = new StreamWriter(settingsFile, false))
+            var settings = new AppSettings
             {
-                sw.WriteLine($"RocketCom,{dat1com.Text}");
-                sw.WriteLine($"RocketBaud,{dat1baud.Text}");
-                sw.WriteLine($"PayloadCom,{dat2com.Text}");
-                sw.WriteLine($"PayloadBaud,{dat2baud.Text}");
-                sw.WriteLine($"HYICom,{dat3com.Text}");
-                sw.WriteLine($"HYIBaud,{dat3baud.Text}");
-                sw.WriteLine($"HYIHertz,{HYIhertz.Text}");
-                sw.WriteLine($"Camera,{cameraCombo.Text}");
-                sw.WriteLine($"TeamID,{teadidinput.Text}");
-            }
+                RocketCom = dat1com.Text,
+                RocketBaud = int.TryParse(dat1baud.Text, out int rb) ? rb : 9600,
+                PayloadCom = dat2com.Text,
+                PayloadBaud = int.TryParse(dat2baud.Text, out int pb) ? pb : 9600,
+                HYICom = dat3com.Text,
+                HYIBaud = int.TryParse(dat3baud.Text, out int hb) ? hb : 19200,
+                HYIHertz = int.TryParse(HYIhertz.Text, out int hh) ? hh : 5,
+                Camera = cameraCombo.Text,
+                TeamID = byte.TryParse(teadidinput.Text, out byte tid) ? tid : (byte)0,
+                RocketLogEnabled = rocketlogcheck.Checked,
+                PayloadLogEnabled = payloadlogcheck.Checked
+            };
+            File.WriteAllText(settingsFile, JsonSerializer.Serialize(settings));
         }
 
-        private void LoadSettingsFromCsv()
+        private void LoadSettingsFromFile()
         {
             if (!File.Exists(settingsFile))
                 return;
 
-            var lines = File.ReadAllLines(settingsFile);
-            foreach (var line in lines)
+            try
             {
-                var parts = line.Split(new[] { ',' }, 2);
-                if (parts.Length != 2)
-                    continue;
-                string key = parts[0];
-                string value = parts[1];
-
-                switch (key)
-                {
-                    case "RocketCom":
-                        SelectComboBoxItem(dat1com, value);
-                        break;
-                    case "RocketBaud":
-                        SelectComboBoxItem(dat1baud, value);
-                        break;
-                    case "PayloadCom":
-                        SelectComboBoxItem(dat2com, value);
-                        break;
-                    case "PayloadBaud":
-                        SelectComboBoxItem(dat2baud, value);
-                        break;
-                    case "HYICom":
-                        SelectComboBoxItem(dat3com, value);
-                        break;
-                    case "HYIBaud":
-                        SelectComboBoxItem(dat3baud, value);
-                        break;
-                    case "HYIHertz":
-                        HYIhertz.Text = value;
-                        break;
-                    case "Camera":
-                        SelectComboBoxItem(cameraCombo, value);
-                        break;
-                    case "TeamID":
-                        teadidinput.Text = value;
-                        break;
-                }
+                var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(settingsFile));
+                SelectComboBoxItem(dat1com, settings.RocketCom);
+                SelectComboBoxItem(dat1baud, settings.RocketBaud.ToString());
+                SelectComboBoxItem(dat2com, settings.PayloadCom);
+                SelectComboBoxItem(dat2baud, settings.PayloadBaud.ToString());
+                SelectComboBoxItem(dat3com, settings.HYICom);
+                SelectComboBoxItem(dat3baud, settings.HYIBaud.ToString());
+                HYIhertz.Text = settings.HYIHertz.ToString();
+                SelectComboBoxItem(cameraCombo, settings.Camera);
+                teadidinput.Text = settings.TeamID.ToString();
+                rocketlogcheck.Checked = settings.RocketLogEnabled;
+                payloadlogcheck.Checked = settings.PayloadLogEnabled;
             }
+            catch { }
         }
 
         private void SelectComboBoxItem(ComboBox combo, string value)
@@ -333,6 +315,15 @@ namespace Astra_Ground_Station
                 combo.SelectedIndex = combo.Items.Count - 1;
             }
         }
+
+        private void rocketlogcheck_CheckedChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void payloadlogcheck_CheckedChanged(object sender, EventArgs e)
+        {
+        }
+
         private void dat1baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat1com_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat2baud_SelectedIndexChanged(object sender, EventArgs e) { }
@@ -340,4 +331,5 @@ namespace Astra_Ground_Station
         private void dat3baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat3com_SelectedIndexChanged(object sender, EventArgs e) { }
     }
+
 }

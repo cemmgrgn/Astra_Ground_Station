@@ -8,11 +8,13 @@ using System.Drawing;
 using System.IO;
 using System.IO.Ports;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace Astra_Ground_Station
 {
     public partial class Astra : Form
     {
+
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
         private readonly PointLatLng defGPSpos = new PointLatLng(40.991456211811055, 28.83219514613196);
@@ -22,6 +24,14 @@ namespace Astra_Ground_Station
 
         private SerialPort serialPortRocket;
         private SerialPort serialPortPayload;
+        private SerialPort serialPortHYI;
+        private bool isHYIConnected = false;
+        private byte hyiPacketCounter = 0;
+        private string lastRocketData = null;
+        private string lastPayloadData = null;
+        private System.Windows.Forms.Timer hyiSendTimer;
+        private byte teamId = 0;
+        private int hyiSendIntervalMs = 200;
 
         private const int MaxChartPoints = 30;
         private int sampleIndex = 0;
@@ -80,22 +90,45 @@ namespace Astra_Ground_Station
         private Color FSCalertPayloadBorderColor = Color.Crimson;
         private Color GNSSalertPayloadBorderColor = Color.Crimson;
 
+        private string rocketLogFile = "";
+        private string payloadLogFile = "";
+        private bool rocketLoggingActive = false;
+        private bool payloadLoggingActive = false;
+
+        private bool rocketLogEnabledSetting = false;
+        private bool payloadLogEnabledSetting = false;
+
+        // --- Constructor & Initialization ---
+
         public Astra()
         {
             InitializeComponent();
+            InitEvents();
+            InitControls();
+            InitTimers();
+            Control.CheckForIllegalCrossThreadCalls = false;
+            InitAlertBorders();
+        }
+
+        private void InitEvents()
+        {
             ConnectButton.Click += ConnectButton_Click;
             DisconnectButton.Click += DisconnectButton_Click;
             ConnectPayloadButton.Click += ConnectPayloadButton_Click;
             DisconnectPayloadButton.Click += DisconnectPayloadButton_Click;
             CameraConnectButton.Click += CameraConnectButton_Click;
             CameraDisconnectButton.Click += CameraDisconnectButton_Click;
-            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            ConnectHYIButton.Click += ConnectHYIButton_Click;
+            DisconnectHYIButton.Click += DisconnectHYIButton_Click;
             this.FormClosing += Astra_FormClosing;
-            this.Load += Form1_Load;
+            this.Load += Astra_Load;
+        }
 
+        private void InitControls()
+        {
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             settingsControl = new Settings();
             settingsControl.Dock = DockStyle.Fill;
-
             testStationControl = new TestStation();
             testStationControl.Dock = DockStyle.Fill;
 
@@ -107,7 +140,14 @@ namespace Astra_Ground_Station
             CameraDisconnectButton.Enabled = false;
             CameraConnectButton.Visible = true;
             CameraDisconnectButton.Visible = false;
+            ConnectHYIButton.Enabled = true;
+            DisconnectHYIButton.Enabled = false;
+            ConnectHYIButton.Visible = true;
+            DisconnectHYIButton.Visible = false;
+        }
 
+        private void InitTimers()
+        {
             chartUpdateTimer = new System.Windows.Forms.Timer();
             chartUpdateTimer.Interval = 1000;
             chartUpdateTimer.Tick += ChartUpdateTimer_Tick;
@@ -123,8 +163,13 @@ namespace Astra_Ground_Station
             alertTimeoutTimer.Tick += AlertTimeoutTimer_Tick;
             alertTimeoutTimer.Start();
 
-            Control.CheckForIllegalCrossThreadCalls = false;
+            hyiSendTimer = new System.Windows.Forms.Timer();
+            hyiSendTimer.Interval = hyiSendIntervalMs;
+            hyiSendTimer.Tick += HYISendTimer_Tick;
+        }
 
+        private void InitAlertBorders()
+        {
             ALTalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, ALTalert.ClientRectangle, ALTalertBorderColor, ButtonBorderStyle.Solid);
             IMUalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, IMUalert.ClientRectangle, IMUalertBorderColor, ButtonBorderStyle.Solid);
             FSCalert.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, FSCalert.ClientRectangle, FSCalertBorderColor, ButtonBorderStyle.Solid);
@@ -135,69 +180,147 @@ namespace Astra_Ground_Station
             ALTalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, ALTalert2.ClientRectangle, ALTalertPayloadBorderColor, ButtonBorderStyle.Solid);
             IMUalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, IMUalert2.ClientRectangle, IMUalertPayloadBorderColor, ButtonBorderStyle.Solid);
             FSCalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, FSCalert2.ClientRectangle, FSCalertPayloadBorderColor, ButtonBorderStyle.Solid);
-            GNSSalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, GNSSalert.ClientRectangle, GNSSalertPayloadBorderColor, ButtonBorderStyle.Solid);
+            GNSSalert2.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, GNSSalert2.ClientRectangle, GNSSalertPayloadBorderColor, ButtonBorderStyle.Solid);
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        // --- Form Events ---
+
+        private void Astra_Load(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Maximized;
-
-            RocketMap.MapProvider = BingSatelliteMapProvider.Instance;
-            RocketMap.Position = defGPSpos;
-            RocketMap.MinZoom = 1;
-            RocketMap.MaxZoom = 32;
-            RocketMap.Zoom = 16;
-            GMaps.Instance.Mode = AccessMode.ServerAndCache;
-            RocketMap.OnMapZoomChanged += RocketMap_OnMapZoomChanged;
-
-            SetupChartSeries(AltChart, "Rocket", "Payload");
-            SetupChartSeries(SpdChart, "Rocket", "Payload");
-            SetupChartSeries(AccChart, "Rocket", "Payload");
-        }
-
-        private void SetupChartSeries(System.Windows.Forms.DataVisualization.Charting.Chart chart, string rocketName, string payloadName)
-        {
-            chart.Series.Clear();
-            var payloadSeries = chart.Series.Add(payloadName);
-            payloadSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            payloadSeries.Color = Color.LightBlue;
-            payloadSeries.BorderWidth = 2;
-            payloadSeries.LegendText = "Payload";
-
-            var rocketSeries = chart.Series.Add(rocketName);
-            rocketSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            rocketSeries.Color = Color.Purple;
-            rocketSeries.BorderWidth = 2;
-            rocketSeries.LegendText = "Rocket";
-        }
-
-        private void RocketMap_OnMapZoomChanged()
-        {
-            RocketMap.Position = defGPSpos;
-        }
-
-        private void videoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
-        {
-            if (pictureBox1.InvokeRequired)
+            try
             {
-                pictureBox1.Invoke(new MethodInvoker(delegate
+                ReadSerialSettingsHYI();
+                this.WindowState = FormWindowState.Maximized;
+                RocketMap.MapProvider = BingSatelliteMapProvider.Instance;
+                RocketMap.Position = defGPSpos;
+                RocketMap.MinZoom = 1;
+                RocketMap.MaxZoom = 32;
+                RocketMap.Zoom = 16;
+                GMaps.Instance.Mode = AccessMode.ServerAndCache;
+                RocketMap.OnMapZoomChanged += RocketMap_OnMapZoomChanged;
+
+                SetupChartSeries(AltChart, "Rocket", "Payload");
+                SetupChartSeries(SpdChart, "Rocket", "Payload");
+                SetupChartSeries(AccChart, "Rocket", "Payload");
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "Astra_Load");
+                messageLabel.Text = "Load error!";
+            }
+        }
+
+        private void Astra_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                chartUpdateTimer?.Stop();
+                serialReconnectTimer?.Stop();
+                alertTimeoutTimer?.Stop();
+                hyiSendTimer?.Stop();
+                StopCamera();
+                CloseSerialPorts();
+                ConnectButton.Enabled = false;
+                DisconnectButton.Enabled = false;
+                ConnectPayloadButton.Enabled = false;
+                DisconnectPayloadButton.Enabled = false;
+                CameraConnectButton.Enabled = false;
+                CameraDisconnectButton.Enabled = false;
+                ConnectHYIButton.Enabled = false;
+                DisconnectHYIButton.Enabled = false;
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "Astra_FormClosing");
+            }
+        }
+
+        // --- Logging ---
+
+        private void LogError(Exception ex, string context)
+        {
+            try
+            {
+                File.AppendAllText("Astra_ErrorLog.txt", $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{context}] {ex}\n");
+            }
+            catch { }
+        }
+
+        // --- Settings ---
+
+        private (
+            string rocketPort, int rocketBaud,
+            string payloadPort, int payloadBaud,
+            string hyiPort, int hyiBaud, int hyiHertz,
+            string camera, byte tid
+        ) ReadSerialSettingsHYI()
+        {
+            string settingsFile = "settings.csv";
+            string rocketCom = "COM100";
+            int rocketBaud = 9600;
+            string payloadCom = "COM102";
+            int payloadBaud = 9600;
+            string hyiCom = "COM104";
+            int hyiBaud = 19200;
+            int hyiHertz = 5;
+            string camera = "";
+            byte tid = 0;
+
+            rocketLogEnabledSetting = false;
+            payloadLogEnabledSetting = false;
+
+            try
+            {
+                if (File.Exists(settingsFile))
                 {
-                    SetPictureBoxImage((Bitmap)eventArgs.Frame.Clone());
-                }));
+                    var lines = File.ReadAllLines(settingsFile);
+                    foreach (var line in lines)
+                    {
+                        var parts = line.Split(',');
+                        if (parts.Length == 2)
+                        {
+                            string key = parts[0].Trim();
+                            string value = parts[1].Trim();
+                            if (key.Equals("RocketCom", StringComparison.OrdinalIgnoreCase))
+                                rocketCom = value;
+                            else if (key.Equals("RocketBaud", StringComparison.OrdinalIgnoreCase))
+                                int.TryParse(value, out rocketBaud);
+                            else if (key.Equals("PayloadCom", StringComparison.OrdinalIgnoreCase))
+                                payloadCom = value;
+                            else if (key.Equals("PayloadBaud", StringComparison.OrdinalIgnoreCase))
+                                int.TryParse(value, out payloadBaud);
+                            else if (key.Equals("HYICom", StringComparison.OrdinalIgnoreCase))
+                                hyiCom = value;
+                            else if (key.Equals("HYIBaud", StringComparison.OrdinalIgnoreCase))
+                                int.TryParse(value, out hyiBaud);
+                            else if (key.Equals("HYIHertz", StringComparison.OrdinalIgnoreCase))
+                                int.TryParse(value, out hyiHertz);
+                            else if (key.Equals("Camera", StringComparison.OrdinalIgnoreCase))
+                                camera = value;
+                            else if (key.Equals("TeamID", StringComparison.OrdinalIgnoreCase))
+                                byte.TryParse(value, out tid);
+                            else if (key.Equals("RocketLogEnabled", StringComparison.OrdinalIgnoreCase))
+                                rocketLogEnabledSetting = (value == "1");
+                            else if (key.Equals("PayloadLogEnabled", StringComparison.OrdinalIgnoreCase))
+                                payloadLogEnabledSetting = (value == "1");
+                        }
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                SetPictureBoxImage((Bitmap)eventArgs.Frame.Clone());
+                LogError(ex, "ReadSerialSettingsHYI");
+                messageLabel.Text = "settings.csv okunamıyor";
             }
+            teamId = tid;
+            hyiSendIntervalMs = (hyiHertz > 0) ? (1000 / hyiHertz) : 200;
+            if (hyiSendTimer != null)
+                hyiSendTimer.Interval = hyiSendIntervalMs;
+            return (rocketCom, rocketBaud, payloadCom, payloadBaud, hyiCom, hyiBaud, hyiHertz, camera, tid);
         }
 
-        private void SetPictureBoxImage(Bitmap bitmap)
-        {
-            if (pictureBox1.Image != null)
-                pictureBox1.Image.Dispose();
-
-            pictureBox1.Image = bitmap;
-        }
+        // --- Camera ---
 
         private void CameraConnectButton_Click(object sender, EventArgs e)
         {
@@ -223,7 +346,7 @@ namespace Astra_Ground_Station
 
                 if (string.IsNullOrEmpty(cameraMonikerString))
                 {
-                    messageLabel.Text = "Camera port could not be found in settings.csv!";
+                    messageLabel.Text = "Camera port yok (settings.csv)";
                     return;
                 }
 
@@ -240,7 +363,7 @@ namespace Astra_Ground_Station
 
                 if (selectedDevice == null)
                 {
-                    messageLabel.Text = "No device was found corresponding to the configured camera port!";
+                    messageLabel.Text = "Kamera bulunamadı!";
                     return;
                 }
 
@@ -250,7 +373,7 @@ namespace Astra_Ground_Station
                 videoSource.NewFrame += videoSource_NewFrame;
                 videoSource.Start();
 
-                messageLabel.Text = "Camera started successfully.";
+                messageLabel.Text = "Kamera başlatıldı.";
 
                 CameraConnectButton.Enabled = false;
                 CameraConnectButton.Visible = false;
@@ -259,15 +382,17 @@ namespace Astra_Ground_Station
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Error while starting camera: " + ex.Message;
+                LogError(ex, "CameraConnectButton_Click");
+                messageLabel.Text = "Kamera başlatılırken hata!";
             }
         }
+
         private void CameraDisconnectButton_Click(object sender, EventArgs e)
         {
             try
             {
                 StopCamera();
-                messageLabel.Text = "Camera connection closed.";
+                messageLabel.Text = "Kamera bağlantısı kapatıldı.";
 
                 CameraConnectButton.Enabled = true;
                 CameraConnectButton.Visible = true;
@@ -276,138 +401,75 @@ namespace Astra_Ground_Station
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Camera could not be disconnected: " + ex.Message;
+                LogError(ex, "CameraDisconnectButton_Click");
+                messageLabel.Text = "Kamera bağlantısı kapatılamadı!";
             }
         }
+
         private void StopCamera()
         {
-            if (videoSource != null)
-            {
-                if (videoSource.IsRunning)
-                {
-                    videoSource.SignalToStop();
-                    int waited = 0;
-                    while (videoSource.IsRunning && waited < 2000)
-                    {
-                        Application.DoEvents();
-                        System.Threading.Thread.Sleep(50);
-                        waited += 50;
-                    }
-                }
-                videoSource.NewFrame -= videoSource_NewFrame;
-                try { videoSource.Stop(); } catch { }
-                try { videoSource.SignalToStop(); } catch { }
-                try { videoSource.WaitForStop(); } catch { }
-                try { videoSource = null; } catch { }
-                try { videoDevices = null; } catch { }
-                try { pictureBox1.Image = null; } catch { }
-                try { GC.Collect(); } catch { }
-            }
-        }
-
-        private void Astra_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            chartUpdateTimer?.Stop();
-            serialReconnectTimer?.Stop();
-            alertTimeoutTimer?.Stop();
-            StopCamera();
-            CloseSerialPorts();
-            ConnectButton.Enabled = false;
-            DisconnectButton.Enabled = false;
-            ConnectPayloadButton.Enabled = false;
-            DisconnectPayloadButton.Enabled = false;
-            CameraConnectButton.Enabled = false;
-            CameraDisconnectButton.Enabled = false;
-            Environment.Exit(0);
-        }
-
-        private void SettingsButton_Click(object sender, EventArgs e)
-        {
-            if (!SettingsPanel.Controls.Contains(settingsControl))
-            {
-                SettingsPanel.Controls.Clear();
-                SettingsPanel.Controls.Add(settingsControl);
-                SettingsPanel.Visible = true;
-                SettingsPanel.BringToFront();
-                TestStationPanel.Controls.Remove(testStationControl);
-                TestStationPanel.Visible = false;
-            }
-            else
-            {
-                SettingsPanel.Controls.Remove(settingsControl);
-                SettingsPanel.Visible = false;
-            }
-        }
-
-        private void TestStation_Click(object sender, EventArgs e)
-        {
-            if (!TestStationPanel.Controls.Contains(testStationControl))
-            {
-                TestStationPanel.Controls.Clear();
-                TestStationPanel.Controls.Add(testStationControl);
-                TestStationPanel.Visible = true;
-                TestStationPanel.BringToFront();
-                SettingsPanel.Controls.Remove(settingsControl);
-                SettingsPanel.Visible = false;
-            }
-            else
-            {
-                TestStationPanel.Controls.Remove(testStationControl);
-                TestStationPanel.Visible = false;
-            }
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e) { }
-        private void SideMenu_Paint(object sender, PaintEventArgs e) { }
-        private void button1_Click(object sender, EventArgs e)
-        {
-            SettingsPanel.Visible = false;
-            SettingsPanel.BringToFront();
-            TestStationPanel.Visible = false;
-            TestStationPanel.BringToFront();
-        }
-
-        private (string rocketPort, int rocketBaud, string payloadPort, int payloadBaud) ReadSerialSettings()
-        {
-            string settingsFile = "settings.csv";
-            string rocketCom = "COM100";
-            int rocketBaud = 9600;
-            string payloadCom = "COM102";
-            int payloadBaud = 9600;
-
             try
             {
-                if (File.Exists(settingsFile))
+                if (videoSource != null)
                 {
-                    var lines = File.ReadAllLines(settingsFile);
-                    foreach (var line in lines)
+                    if (videoSource.IsRunning)
                     {
-                        var parts = line.Split(',');
-                        if (parts.Length == 2)
+                        videoSource.SignalToStop();
+                        int waited = 0;
+                        while (videoSource.IsRunning && waited < 2000)
                         {
-                            if (parts[0].Trim() == "RocketCom")
-                                rocketCom = parts[1].Trim();
-                            else if (parts[0].Trim() == "RocketBaud")
-                                int.TryParse(parts[1].Trim(), out rocketBaud);
-                            else if (parts[0].Trim() == "PayloadCom")
-                                payloadCom = parts[1].Trim();
-                            else if (parts[0].Trim() == "PayloadBaud")
-                                int.TryParse(parts[1].Trim(), out payloadBaud);
+                            Application.DoEvents();
+                            System.Threading.Thread.Sleep(50);
+                            waited += 50;
                         }
                     }
-                }
-                else
-                {
-                    messageLabel.Text = "settings.csv not found. Using default port settings.";
+                    videoSource.NewFrame -= videoSource_NewFrame;
+                    try { videoSource.Stop(); } catch { }
+                    try { videoSource.SignalToStop(); } catch { }
+                    try { videoSource.WaitForStop(); } catch { }
+                    try { videoSource = null; } catch { }
+                    try { videoDevices = null; } catch { }
+                    try { pictureBox1.Image = null; } catch { }
+                    try { GC.Collect(); } catch { }
                 }
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Error reading settings.csv: " + ex.Message + " Using default port settings.";
+                LogError(ex, "StopCamera");
             }
-
-            return (rocketCom, rocketBaud, payloadCom, payloadBaud);
         }
+
+        private void videoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            try
+            {
+                if (eventArgs.Frame == null) return;
+                Bitmap bmp = null;
+                try { bmp = (Bitmap)eventArgs.Frame.Clone(); } catch { return; }
+                if (bmp == null) return;
+                RunOnUiThread(() => SetPictureBoxImage(bmp));
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "videoSource_NewFrame");
+            }
+        }
+
+        private void SetPictureBoxImage(Bitmap bitmap)
+        {
+            try
+            {
+                if (pictureBox1.Image != null)
+                    pictureBox1.Image.Dispose();
+                pictureBox1.Image = bitmap;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "SetPictureBoxImage");
+            }
+        }
+
+        // --- Serial Port Connections ---
 
         private void ConnectButton_Click(object sender, EventArgs e)
         {
@@ -415,7 +477,19 @@ namespace Astra_Ground_Station
             {
                 if (serialPortRocket == null || !serialPortRocket.IsOpen)
                 {
-                    var (rocketPort, rocketBaud, _, _) = ReadSerialSettings();
+                    var (rocketPort, rocketBaud, _, _, _, _, _, _, _) = ReadSerialSettingsHYI();
+
+                    if (serialPortRocket != null)
+                    {
+                        try
+                        {
+                            if (serialPortRocket.IsOpen)
+                                serialPortRocket.Close();
+                        }
+                        catch { }
+                        serialPortRocket.Dispose();
+                        serialPortRocket = null;
+                    }
 
                     serialPortRocket = new SerialPort(rocketPort, rocketBaud, Parity.None, 8, StopBits.One);
                     serialPortRocket.RtsEnable = true;
@@ -428,11 +502,16 @@ namespace Astra_Ground_Station
                     ConnectButton.Visible = false;
                     DisconnectButton.Enabled = true;
                     DisconnectButton.Visible = true;
+
+                    rocketLoggingActive = rocketLogEnabledSetting;
+                    if (rocketLoggingActive)
+                        CreateRocketLogFile();
                 }
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Rocket Connection Error: " + ex.Message;
+                LogError(ex, "ConnectButton_Click");
+                messageLabel.Text = "Rocket Connection Error!";
             }
         }
 
@@ -440,16 +519,28 @@ namespace Astra_Ground_Station
         {
             try
             {
-                CloseSerialPortRocket();
-                messageLabel.Text = "Rocket Connection Closed.";
+                if (serialPortRocket != null)
+                {
+                    serialPortRocket.DataReceived -= SerialPortRocket_DataReceived;
+
+                    if (serialPortRocket.IsOpen)
+                    {
+                        serialPortRocket.Close();
+                    }
+                    serialPortRocket.Dispose();
+                    serialPortRocket = null;
+                }
+                rocketLoggingActive = false;
                 ConnectButton.Enabled = true;
                 ConnectButton.Visible = true;
                 DisconnectButton.Enabled = false;
                 DisconnectButton.Visible = false;
+                messageLabel.Text = "Rocket Connection Closed.";
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Rocket Error: " + ex.Message;
+                LogError(ex, "DisconnectButton_Click");
+                messageLabel.Text = "Rocket Error!";
             }
         }
 
@@ -459,7 +550,19 @@ namespace Astra_Ground_Station
             {
                 if (serialPortPayload == null || !serialPortPayload.IsOpen)
                 {
-                    var (_, _, payloadPort, payloadBaud) = ReadSerialSettings();
+                    var (_, _, payloadPort, payloadBaud, _, _, _, _, _) = ReadSerialSettingsHYI();
+
+                    if (serialPortPayload != null)
+                    {
+                        try
+                        {
+                            if (serialPortPayload.IsOpen)
+                                serialPortPayload.Close();
+                        }
+                        catch { }
+                        serialPortPayload.Dispose();
+                        serialPortPayload = null;
+                    }
 
                     serialPortPayload = new SerialPort(payloadPort, payloadBaud, Parity.None, 8, StopBits.One);
                     serialPortPayload.RtsEnable = true;
@@ -472,11 +575,16 @@ namespace Astra_Ground_Station
                     ConnectPayloadButton.Visible = false;
                     DisconnectPayloadButton.Enabled = true;
                     DisconnectPayloadButton.Visible = true;
+
+                    payloadLoggingActive = payloadLogEnabledSetting;
+                    if (payloadLoggingActive)
+                        CreatePayloadLogFile();
                 }
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Payload Connection Error: " + ex.Message;
+                LogError(ex, "ConnectPayloadButton_Click");
+                messageLabel.Text = "Payload Connection Error!";
             }
         }
 
@@ -484,18 +592,172 @@ namespace Astra_Ground_Station
         {
             try
             {
-                CloseSerialPortPayload();
-                messageLabel.Text = "Payload Connection Closed.";
+                if (serialPortPayload != null)
+                {
+                    serialPortPayload.DataReceived -= SerialPortPayload_DataReceived;
+
+                    if (serialPortPayload.IsOpen)
+                    {
+                        serialPortPayload.Close();
+                    }
+                    serialPortPayload.Dispose();
+                    serialPortPayload = null;
+                }
+                payloadLoggingActive = false;
                 ConnectPayloadButton.Enabled = true;
                 ConnectPayloadButton.Visible = true;
                 DisconnectPayloadButton.Enabled = false;
                 DisconnectPayloadButton.Visible = false;
+                messageLabel.Text = "Payload Connection Closed.";
             }
             catch (Exception ex)
             {
-                messageLabel.Text = "Payload Error: " + ex.Message;
+                LogError(ex, "DisconnectPayloadButton_Click");
+                messageLabel.Text = "Payload Error!";
             }
         }
+
+        private void ConnectHYIButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (serialPortHYI == null || !serialPortHYI.IsOpen)
+                {
+                    var (_, _, _, _, hyiPort, hyiBaud, hyiHertz, _, _) = ReadSerialSettingsHYI();
+
+                    if (serialPortHYI != null)
+                    {
+                        try
+                        {
+                            if (serialPortHYI.IsOpen)
+                                serialPortHYI.Close();
+                        }
+                        catch { }
+                        serialPortHYI.Dispose();
+                        serialPortHYI = null;
+                    }
+
+                    serialPortHYI = new SerialPort(hyiPort, hyiBaud, Parity.None, 8, StopBits.One);
+                    serialPortHYI.RtsEnable = true;
+                    serialPortHYI.DtrEnable = true;
+
+                    try
+                    {
+                        serialPortHYI.Open();
+                        isHYIConnected = true;
+                        ConnectHYIButton.Enabled = false;
+                        ConnectHYIButton.Visible = false;
+                        DisconnectHYIButton.Enabled = true;
+                        DisconnectHYIButton.Visible = true;
+                        hyiSendTimer.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError(ex, "ConnectHYIButton_Click_open");
+                        messageLabel.Text = "HYI port açılamadı!";
+                        isHYIConnected = false;
+                        try { serialPortHYI.Dispose(); } catch { }
+                        serialPortHYI = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "ConnectHYIButton_Click");
+                messageLabel.Text = "HYI bağlantı hatası!";
+            }
+        }
+
+        private void DisconnectHYIButton_Click(object sender, EventArgs e)
+        {
+            hyiSendTimer.Stop();
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (serialPortHYI != null)
+                    {
+                        if (serialPortHYI.IsOpen)
+                        {
+                            serialPortHYI.Close();
+                        }
+                        serialPortHYI.Dispose();
+                        serialPortHYI = null;
+                    }
+                    isHYIConnected = false;
+
+                    RunOnUiThread(() =>
+                    {
+                        ConnectHYIButton.Enabled = true;
+                        ConnectHYIButton.Visible = true;
+                        DisconnectHYIButton.Enabled = false;
+                        DisconnectHYIButton.Visible = false;
+                        messageLabel.Text = "HYI connection closed.";
+                    });
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex, "DisconnectHYIButton_Click");
+                    RunOnUiThread(() =>
+                    {
+                        messageLabel.Text = "HYI bağlantısı kapatılamadı!";
+                    });
+                }
+            });
+        }
+
+        private void SerialReconnectTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if ((serialPortHYI == null || !serialPortHYI.IsOpen) && (ConnectHYIButton.Enabled == false))
+                {
+                    ConnectHYIButton_Click(null, null);
+                }
+            }
+            catch (Exception ex) { LogError(ex, "SerialReconnectTimer_Tick"); }
+        }
+
+        private void CloseSerialPorts()
+        {
+            try
+            {
+                if (serialPortRocket != null)
+                {
+                    serialPortRocket.DataReceived -= SerialPortRocket_DataReceived;
+                    if (serialPortRocket.IsOpen)
+                        serialPortRocket.Close();
+                    serialPortRocket.Dispose();
+                    serialPortRocket = null;
+                }
+            }
+            catch (Exception ex) { LogError(ex, "CloseSerialPorts_rocket"); }
+
+            try
+            {
+                if (serialPortPayload != null)
+                {
+                    serialPortPayload.DataReceived -= SerialPortPayload_DataReceived;
+                    if (serialPortPayload.IsOpen)
+                        serialPortPayload.Close();
+                    serialPortPayload.Dispose();
+                    serialPortPayload = null;
+                }
+            }
+            catch (Exception ex) { LogError(ex, "CloseSerialPorts_payload"); }
+            try
+            {
+                if (serialPortHYI != null)
+                {
+                    if (serialPortHYI.IsOpen) serialPortHYI.Close();
+                    serialPortHYI.Dispose();
+                    serialPortHYI = null;
+                }
+            }
+            catch (Exception ex) { LogError(ex, "CloseSerialPorts_hyi"); }
+        }
+
+        // --- Serial Data Received Handlers ---
 
         private void SerialPortRocket_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -503,16 +765,25 @@ namespace Astra_Ground_Station
             {
                 string data = serialPortRocket.ReadLine()?.Trim();
 
-                this.BeginInvoke((MethodInvoker)delegate {
-                    dat1rocket.Text = data;
-                });
-
-                if (!string.IsNullOrEmpty(data) && data.StartsWith("$AR"))
+                if (rocketLoggingActive && !string.IsNullOrEmpty(data))
                 {
-                    string[] parts = data.Split(',');
-                    if (parts.Length >= 22)
+                    try
                     {
-                        this.BeginInvoke((MethodInvoker)delegate
+                        string logLine = $"{DateTime.Now:yyyy-MM-dd_HH:mm:ss.fff},{data}\r\n";
+                        File.AppendAllText(rocketLogFile, logLine);
+                    }
+                    catch (Exception ex) { LogError(ex, "RocketLogWrite"); }
+                }
+
+                lastRocketData = data;
+
+                RunOnUiThread(() =>
+                {
+                    dat1rocket.Text = data;
+                    if (!string.IsNullOrEmpty(data) && data.StartsWith("$AR"))
+                    {
+                        string[] parts = data.Split(',');
+                        if (parts.Length >= 22)
                         {
                             dat1lat.Text = parts[1];
                             dat1lon.Text = parts[2];
@@ -520,7 +791,7 @@ namespace Astra_Ground_Station
                             dat1pre.Text = parts[4];
                             dat1gspd.Text = parts[5];
                             dat1aspd.Text = parts[6];
-                            dat1wspd.Text = parts[7];
+                            dat1ang.Text = parts[7];
                             dat1yaw.Text = parts[8];
                             dat1pitch.Text = parts[9];
                             dat1roll.Text = parts[10];
@@ -550,22 +821,20 @@ namespace Astra_Ground_Station
 
                             UpdateStatusAlerts();
                             UpdateSensorAlerts();
-                        });
-                    }
-                    else
-                    {
-                        this.BeginInvoke((MethodInvoker)delegate
+                        }
+                        else
                         {
-                            messageLabel.Text = "Incomplete or invalid rocket data received!";
-                        });
+                            messageLabel.Text = "Eksik/invalid rocket veri!";
+                        }
                     }
-                }
+                });
             }
             catch (Exception ex)
             {
-                this.BeginInvoke((MethodInvoker)delegate
+                LogError(ex, "SerialPortRocket_DataReceived");
+                RunOnUiThread(() =>
                 {
-                    messageLabel.Text = "Rocket serial parse error: " + ex.Message;
+                    messageLabel.Text = "Rocket serial parse error!";
                 });
             }
         }
@@ -576,16 +845,25 @@ namespace Astra_Ground_Station
             {
                 string data = serialPortPayload.ReadLine()?.Trim();
 
-                this.BeginInvoke((MethodInvoker)delegate {
-                    dat2payload.Text = data;
-                });
-
-                if (!string.IsNullOrEmpty(data) && data.StartsWith("$AP"))
+                if (payloadLoggingActive && !string.IsNullOrEmpty(data))
                 {
-                    string[] parts = data.Split(',');
-                    if (parts.Length >= 22)
+                    try
                     {
-                        this.BeginInvoke((MethodInvoker)delegate
+                        string logLine = $"{DateTime.Now:yyyy-MM-dd_HH:mm:ss.fff},{data}\r\n";
+                        File.AppendAllText(payloadLogFile, logLine);
+                    }
+                    catch (Exception ex) { LogError(ex, "PayloadLogWrite"); }
+                }
+
+                lastPayloadData = data;
+
+                RunOnUiThread(() =>
+                {
+                    dat2payload.Text = data;
+                    if (!string.IsNullOrEmpty(data) && data.StartsWith("$AP"))
+                    {
+                        string[] parts = data.Split(',');
+                        if (parts.Length >= 22)
                         {
                             dat2lat.Text = parts[1];
                             dat2lon.Text = parts[2];
@@ -615,52 +893,185 @@ namespace Astra_Ground_Station
                             hasNewPayloadData = true;
 
                             UpdateSensorAlertsPayload();
-                        });
-                    }
-                    else
-                    {
-                        this.BeginInvoke((MethodInvoker)delegate
+                        }
+                        else
                         {
-                            messageLabel.Text = "Incomplete or invalid payload data received!";
-                        });
+                            messageLabel.Text = "Eksik/invalid payload veri!";
+                        }
                     }
-                }
+                });
             }
             catch (Exception ex)
             {
-                this.BeginInvoke((MethodInvoker)delegate
+                LogError(ex, "SerialPortPayload_DataReceived");
+                RunOnUiThread(() =>
                 {
-                    messageLabel.Text = "Payload serial parse error: " + ex.Message;
+                    messageLabel.Text = "Payload serial parse error!";
                 });
             }
         }
 
+        // --- HYI Communication ---
+
+        private void HYISendTimer_Tick(object sender, EventArgs e)
+        {
+            ReadSerialSettingsHYI();
+            SendHYIPacket();
+        }
+
+        private void SendHYIPacket()
+        {
+            if (serialPortHYI == null || !serialPortHYI.IsOpen)
+            {
+                messageLabel.Text = "HYI portu bağlı değil, paket gönderilemiyor.";
+                return;
+            }
+
+            byte[] packet = new byte[78];
+            packet[0] = 0xFF;
+            packet[1] = 0xFF;
+            packet[2] = 0x54;
+            packet[3] = 0x52;
+            packet[4] = teamId;
+            packet[5] = hyiPacketCounter;
+
+            float altitude = 0, rocketGpsAlt = 0, rocketLat = 0, rocketLon = 0;
+            float payloadGpsAlt = 0, payloadLat = 0, payloadLon = 0;
+            float stageGpsAlt = 0, stageLat = 0, stageLon = 0;
+            float gyroX = 0, gyroY = 0, gyroZ = 0;
+            float accX = 0, accY = 0, accZ = 0;
+            float angle = 0;
+            byte status = 0;
+
+            if (!string.IsNullOrEmpty(lastRocketData) && lastRocketData.StartsWith("$AR"))
+            {
+                string[] parts = lastRocketData.Split(',');
+                if (parts.Length >= 22)
+                {
+                    float.TryParse(parts[3], out altitude);
+                    float.TryParse(parts[19], out rocketGpsAlt);
+                    float.TryParse(parts[1], out rocketLat);
+                    float.TryParse(parts[2], out rocketLon);
+                    float.TryParse(parts[11], out accX);
+                    float.TryParse(parts[12], out accY);
+                    float.TryParse(parts[13], out accZ);
+                    float.TryParse(parts[15], out gyroX);
+                    float.TryParse(parts[16], out gyroY);
+                    float.TryParse(parts[17], out gyroZ);
+                    float.TryParse(parts[7], out angle);
+                    byte.TryParse(parts[21], out status);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(lastPayloadData) && lastPayloadData.StartsWith("$AP"))
+            {
+                string[] parts = lastPayloadData.Split(',');
+                if (parts.Length >= 22)
+                {
+                    float.TryParse(parts[19], out payloadGpsAlt);
+                    float.TryParse(parts[1], out payloadLat);
+                    float.TryParse(parts[2], out payloadLon);
+                }
+            }
+
+            void WriteFloat(float value, int index)
+            {
+                byte[] bytes = BitConverter.GetBytes(value);
+                Array.Copy(bytes, 0, packet, index, 4);
+            }
+
+            WriteFloat(altitude, 6);
+            WriteFloat(rocketGpsAlt, 10);
+            WriteFloat(rocketLat, 14);
+            WriteFloat(rocketLon, 18);
+            WriteFloat(payloadGpsAlt, 22);
+            WriteFloat(payloadLat, 26);
+            WriteFloat(payloadLon, 30);
+            WriteFloat(stageGpsAlt, 34);
+            WriteFloat(stageLat, 38);
+            WriteFloat(stageLon, 42);
+            WriteFloat(gyroX, 46);
+            WriteFloat(gyroY, 50);
+            WriteFloat(gyroZ, 54);
+            WriteFloat(accX, 58);
+            WriteFloat(accY, 62);
+            WriteFloat(accZ, 66);
+            WriteFloat(angle, 70);
+
+            packet[74] = status;
+
+            int check_sum = 0;
+            for (int i = 4; i < 75; i++)
+                check_sum += packet[i];
+            packet[75] = (byte)(check_sum % 256);
+            packet[76] = 0x0D;
+            packet[77] = 0x0A;
+
+            try
+            {
+                serialPortHYI.Write(packet, 0, 78);
+                hyiPacketCounter++;
+                if (hyiPacketCounter > 255) hyiPacketCounter = 0;
+                messageLabel.Text = $"HYI paket gönderildi {DateTime.Now:HH:mm:ss.fff}";
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "SendHYIPacket");
+                messageLabel.Text = "HYI gönderim hatası!";
+            }
+        }
+
+        // --- Charts and Map ---
+
         private void ChartUpdateTimer_Tick(object sender, EventArgs e)
         {
-            bool anyUpdate = hasNewRocketData || hasNewPayloadData;
-            hasNewRocketData = false;
-            hasNewPayloadData = false;
-
-            if (anyUpdate)
+            try
             {
-                ShiftAndAppend(altBuffer, lastAlt);
-                ShiftAndAppend(sdpBuffer, lastSdp);
-                ShiftAndAppend(accBuffer, lastAcc);
-                ShiftAndAppend(altPayloadBuffer, lastAltPayload);
-                ShiftAndAppend(sdpPayloadBuffer, lastSdpPayload);
-                ShiftAndAppend(accPayloadBuffer, lastAccPayload);
+                bool anyUpdate = hasNewRocketData || hasNewPayloadData;
+                hasNewRocketData = false;
+                hasNewPayloadData = false;
 
-                UpdateChart2Series(AltChart, altBuffer, altPayloadBuffer);
-                UpdateChart2Series(SpdChart, sdpBuffer, sdpPayloadBuffer);
-                UpdateChart2Series(AccChart, accBuffer, accPayloadBuffer);
+                if (anyUpdate)
+                {
+                    ShiftAndAppend(altBuffer, lastAlt);
+                    ShiftAndAppend(sdpBuffer, lastSdp);
+                    ShiftAndAppend(accBuffer, lastAcc);
+                    ShiftAndAppend(altPayloadBuffer, lastAltPayload);
+                    ShiftAndAppend(sdpPayloadBuffer, lastSdpPayload);
+                    ShiftAndAppend(accPayloadBuffer, lastAccPayload);
 
-                sampleIndex++;
+                    UpdateChart2Series(AltChart, altBuffer, altPayloadBuffer);
+                    UpdateChart2Series(SpdChart, sdpBuffer, sdpPayloadBuffer);
+                    UpdateChart2Series(AccChart, accBuffer, accPayloadBuffer);
+
+                    sampleIndex++;
+                }
+
+                if (lastMapLat.HasValue && lastMapLon.HasValue)
+                {
+                    RocketMap.Position = new PointLatLng(lastMapLat.Value, lastMapLon.Value);
+                }
             }
-
-            if (lastMapLat.HasValue && lastMapLon.HasValue)
+            catch (Exception ex)
             {
-                RocketMap.Position = new PointLatLng(lastMapLat.Value, lastMapLon.Value);
+                LogError(ex, "ChartUpdateTimer_Tick");
             }
+        }
+
+        private void SetupChartSeries(System.Windows.Forms.DataVisualization.Charting.Chart chart, string rocketName, string payloadName)
+        {
+            chart.Series.Clear();
+            var payloadSeries = chart.Series.Add(payloadName);
+            payloadSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            payloadSeries.Color = Color.LightBlue;
+            payloadSeries.BorderWidth = 2;
+            payloadSeries.LegendText = "Payload";
+
+            var rocketSeries = chart.Series.Add(rocketName);
+            rocketSeries.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            rocketSeries.Color = Color.Purple;
+            rocketSeries.BorderWidth = 2;
+            rocketSeries.LegendText = "Rocket";
         }
 
         private void ShiftAndAppend(double[] buffer, double value)
@@ -685,59 +1096,64 @@ namespace Astra_Ground_Station
             }
         }
 
-        private void CloseSerialPortRocket()
+        private void RocketMap_OnMapZoomChanged()
         {
-            try
-            {
-                if (serialPortRocket != null)
-                {
-                    serialPortRocket.DataReceived -= SerialPortRocket_DataReceived;
-
-                    if (serialPortRocket.IsOpen)
-                    {
-                        serialPortRocket.Close();
-                    }
-                    serialPortRocket.Dispose();
-                    serialPortRocket = null;
-                }
-            }
-            catch { }
+            RocketMap.Position = defGPSpos;
         }
 
-        private void CloseSerialPortPayload()
-        {
-            try
-            {
-                if (serialPortPayload != null)
-                {
-                    serialPortPayload.DataReceived -= SerialPortPayload_DataReceived;
+        // --- Alert Handling ---
 
-                    if (serialPortPayload.IsOpen)
-                    {
-                        serialPortPayload.Close();
-                    }
-                    serialPortPayload.Dispose();
-                    serialPortPayload = null;
-                }
+        private void AlertTimeoutTimer_Tick(object sender, EventArgs e)
+        {
+            bool altWasRecently = altChangedRecently;
+            bool imuWasRecently = imuChangedRecently;
+            bool payloadAltWasRecently = payloadAltChangedRecently;
+            bool payloadIMUWasRecently = payloadIMUChangedRecently;
+
+            if ((DateTime.Now - lastAltAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(ALTalert);
+                altChangedRecently = false;
             }
-            catch { }
-        }
 
-        private void CloseSerialPorts()
-        {
-            CloseSerialPortRocket();
-            CloseSerialPortPayload();
-        }
-
-        private void SerialReconnectTimer_Tick(object sender, EventArgs e)
-        {
-            if ((serialPortRocket == null || !serialPortRocket.IsOpen) && !ConnectButton.Enabled)
+            if ((DateTime.Now - lastIMUAlertChange).TotalSeconds > 3)
             {
-                try { ConnectButton_Click(null, null); } catch { }
+                SetAlertRed(IMUalert);
+                imuChangedRecently = false;
             }
-            if ((serialPortPayload == null || !serialPortPayload.IsOpen) && !ConnectPayloadButton.Enabled)
+
+            if ((DateTime.Now - lastGNSSAlertChange).TotalSeconds > 3)
             {
-                try { ConnectPayloadButton_Click(null, null); } catch { }
+                SetAlertRed(GNSSalert);
+                gnssChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadAltAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(ALTalert2);
+                payloadAltChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadIMUAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(IMUalert2);
+                payloadIMUChangedRecently = false;
+            }
+
+            if ((DateTime.Now - lastPayloadGNSSAlertChange).TotalSeconds > 3)
+            {
+                SetAlertRed(GNSSalert2);
+                payloadGNSSChangedRecently = false;
+            }
+
+            if (altWasRecently != altChangedRecently || imuWasRecently != imuChangedRecently)
+            {
+                UpdateFSCalert();
+            }
+
+            if (payloadAltWasRecently != payloadAltChangedRecently || payloadIMUWasRecently != payloadIMUChangedRecently)
+            {
+                UpdateFSCalertPayload();
             }
         }
 
@@ -927,58 +1343,90 @@ namespace Astra_Ground_Station
             UpdateFSCalertPayload();
         }
 
-        private void AlertTimeoutTimer_Tick(object sender, EventArgs e)
+        // --- UI Miscellaneous ---
+
+        private void SettingsButton_Click(object sender, EventArgs e)
         {
-            bool altWasRecently = altChangedRecently;
-            bool imuWasRecently = imuChangedRecently;
-            bool payloadAltWasRecently = payloadAltChangedRecently;
-            bool payloadIMUWasRecently = payloadIMUChangedRecently;
-
-            if ((DateTime.Now - lastAltAlertChange).TotalSeconds > 3)
+            try
             {
-                SetAlertRed(ALTalert);
-                altChangedRecently = false;
+                if (!SettingsPanel.Controls.Contains(settingsControl))
+                {
+                    SettingsPanel.Controls.Clear();
+                    SettingsPanel.Controls.Add(settingsControl);
+                    SettingsPanel.Visible = true;
+                    SettingsPanel.BringToFront();
+                    TestStationPanel.Controls.Remove(testStationControl);
+                    TestStationPanel.Visible = false;
+                }
+                else
+                {
+                    SettingsPanel.Controls.Remove(settingsControl);
+                    SettingsPanel.Visible = false;
+                }
             }
-
-            if ((DateTime.Now - lastIMUAlertChange).TotalSeconds > 3)
+            catch (Exception ex)
             {
-                SetAlertRed(IMUalert);
-                imuChangedRecently = false;
+                LogError(ex, "SettingsButton_Click");
             }
+        }
 
-            if ((DateTime.Now - lastGNSSAlertChange).TotalSeconds > 3)
+        private void TestStation_Click(object sender, EventArgs e)
+        {
+            try
             {
-                SetAlertRed(GNSSalert);
-                gnssChangedRecently = false;
+                if (!TestStationPanel.Controls.Contains(testStationControl))
+                {
+                    TestStationPanel.Controls.Clear();
+                    TestStationPanel.Controls.Add(testStationControl);
+                    TestStationPanel.Visible = true;
+                    TestStationPanel.BringToFront();
+                    SettingsPanel.Controls.Remove(settingsControl);
+                    SettingsPanel.Visible = false;
+                }
+                else
+                {
+                    TestStationPanel.Controls.Remove(testStationControl);
+                    TestStationPanel.Visible = false;
+                }
             }
+            catch (Exception ex)
+            {
+                LogError(ex, "TestStation_Click");
+            }
+        }
 
-            if ((DateTime.Now - lastPayloadAltAlertChange).TotalSeconds > 3)
-            {
-                SetAlertRed(ALTalert2);
-                payloadAltChangedRecently = false;
-            }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SettingsPanel.Visible = false;
+            SettingsPanel.BringToFront();
+            TestStationPanel.Visible = false;
+            TestStationPanel.BringToFront();
+        }
 
-            if ((DateTime.Now - lastPayloadIMUAlertChange).TotalSeconds > 3)
-            {
-                SetAlertRed(IMUalert2);
-                payloadIMUChangedRecently = false;
-            }
+        // --- Utility ---
 
-            if ((DateTime.Now - lastPayloadGNSSAlertChange).TotalSeconds > 3)
-            {
-                SetAlertRed(GNSSalert2);
-                payloadGNSSChangedRecently = false;
-            }
+        private void RunOnUiThread(Action act)
+        {
+            if (InvokeRequired) BeginInvoke(act);
+            else act();
+        }
 
-            if (altWasRecently != altChangedRecently || imuWasRecently != imuChangedRecently)
-            {
-                UpdateFSCalert();
-            }
+        private void CreateRocketLogFile()
+        {
+            string dateStr = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
+            if (!Directory.Exists("logs"))
+                Directory.CreateDirectory("logs");
+            rocketLogFile = Path.Combine("logs", $"Astra_Rocket_{dateStr}.txt");
+            try { File.WriteAllText(rocketLogFile, ""); } catch (Exception ex) { LogError(ex, "CreateRocketLogFile"); }
+        }
 
-            if (payloadAltWasRecently != payloadAltChangedRecently || payloadIMUWasRecently != payloadIMUChangedRecently)
-            {
-                UpdateFSCalertPayload();
-            }
+        private void CreatePayloadLogFile()
+        {
+            string dateStr = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
+            if (!Directory.Exists("logs"))
+                Directory.CreateDirectory("logs");
+            payloadLogFile = Path.Combine("logs", $"Astra_Payload_{dateStr}.txt");
+            try { File.WriteAllText(payloadLogFile, ""); } catch (Exception ex) { LogError(ex, "CreatePayloadLogFile"); }
         }
     }
 }
