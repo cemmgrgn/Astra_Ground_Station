@@ -7,8 +7,8 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
-using System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Astra_Ground_Station
 {
@@ -818,7 +818,16 @@ namespace Astra_Ground_Station
                                 lastMapLat = rocketLat;
                                 lastMapLon = rocketLon;
                             }
-
+                            
+                            if (float.TryParse(dat1ang.Text, out float angleValue))
+                            {
+                                rocketAngleIndicator1.SetAngle(angleValue);
+                            }
+                            else
+                            {
+                                rocketAngleIndicator1.SetAngle(0);
+                            }
+                            
                             UpdateStatusAlerts();
                             UpdateSensorAlerts();
                         }
@@ -1427,6 +1436,9 @@ namespace Astra_Ground_Station
                 Directory.CreateDirectory("logs");
             payloadLogFile = Path.Combine("logs", $"Astra_Payload_{dateStr}.txt");
             try { File.WriteAllText(payloadLogFile, ""); } catch (Exception ex) { LogError(ex, "CreatePayloadLogFile"); }
+        }
+        private void SideMenu_Paint(object sender, PaintEventArgs e)
+        {
         }
     }
 }

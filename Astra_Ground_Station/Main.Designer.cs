@@ -29,15 +29,15 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Astra));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
             DisconnectHYIButton = new Button();
             ConnectHYIButton = new Button();
@@ -59,7 +59,6 @@
             PosText = new Label();
             RocketText = new Label();
             PayloadText = new Label();
-            RocketAngel = new Panel();
             SatPanel = new Panel();
             dat2payload = new Label();
             tableLayoutPanel2 = new TableLayoutPanel();
@@ -177,7 +176,9 @@
             ALTalert = new Button();
             GNSSalert = new Button();
             SettingsPanel = new Panel();
+            RocketAngel = new Panel();
             TestStationPanel = new Panel();
+            rocketAngleIndicator1 = new RocketAngleIndicator();
             SideMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AltLogo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)AstraLogo).BeginInit();
@@ -194,6 +195,7 @@
             RocketPanel.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             RocketAlert.SuspendLayout();
+            SettingsPanel.SuspendLayout();
             SuspendLayout();
             // 
             // SideMenu
@@ -217,6 +219,7 @@
             SideMenu.Name = "SideMenu";
             SideMenu.Size = new Size(300, 1001);
             SideMenu.TabIndex = 1;
+            SideMenu.Paint += SideMenu_Paint;
             // 
             // DisconnectHYIButton
             // 
@@ -393,7 +396,6 @@
             MainPanel.Controls.Add(PosText);
             MainPanel.Controls.Add(RocketText);
             MainPanel.Controls.Add(PayloadText);
-            MainPanel.Controls.Add(RocketAngel);
             MainPanel.Controls.Add(SatPanel);
             MainPanel.Controls.Add(CamPanel);
             MainPanel.Controls.Add(GraphPanel);
@@ -460,14 +462,6 @@
             PayloadText.Size = new Size(78, 18);
             PayloadText.TabIndex = 7;
             PayloadText.Text = "Payload";
-            // 
-            // RocketAngel
-            // 
-            RocketAngel.BorderStyle = BorderStyle.FixedSingle;
-            RocketAngel.Location = new Point(625, 21);
-            RocketAngel.Name = "RocketAngel";
-            RocketAngel.Size = new Size(350, 309);
-            RocketAngel.TabIndex = 6;
             // 
             // SatPanel
             // 
@@ -1105,6 +1099,7 @@
             // CamPanel
             // 
             CamPanel.BorderStyle = BorderStyle.FixedSingle;
+            CamPanel.Controls.Add(rocketAngleIndicator1);
             CamPanel.Controls.Add(CameraConnectButton);
             CamPanel.Controls.Add(CameraDisconnectButton);
             CamPanel.Controls.Add(pictureBox1);
@@ -1155,64 +1150,64 @@
             // 
             // AccChart
             // 
-            chartArea4.AxisX.Title = "Time(s)";
-            chartArea4.AxisY.Title = "Absolute Accleration(m/s²)";
-            chartArea4.BackImageAlignment = System.Windows.Forms.DataVisualization.Charting.ChartImageAlignmentStyle.Bottom;
-            chartArea4.Name = "ChartArea1";
-            AccChart.ChartAreas.Add(chartArea4);
-            legend4.Enabled = false;
-            legend4.Name = "Legend1";
-            AccChart.Legends.Add(legend4);
+            chartArea1.AxisX.Title = "Time(s)";
+            chartArea1.AxisY.Title = "Absolute Accleration(m/s²)";
+            chartArea1.BackImageAlignment = System.Windows.Forms.DataVisualization.Charting.ChartImageAlignmentStyle.Bottom;
+            chartArea1.Name = "ChartArea1";
+            AccChart.ChartAreas.Add(chartArea1);
+            legend1.Enabled = false;
+            legend1.Name = "Legend1";
+            AccChart.Legends.Add(legend1);
             AccChart.Location = new Point(22, 319);
             AccChart.Name = "AccChart";
             AccChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series4.Legend = "Legend1";
-            series4.Name = "Abs Acc(m/s²)";
-            AccChart.Series.Add(series4);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series1.Legend = "Legend1";
+            series1.Name = "Abs Acc(m/s²)";
+            AccChart.Series.Add(series1);
             AccChart.Size = new Size(340, 290);
             AccChart.TabIndex = 3;
             AccChart.Text = "chart3";
             // 
             // SpdChart
             // 
-            chartArea5.AxisX.Title = "Time(s)";
-            chartArea5.AxisY.Title = "Ground Speed(m/s)";
-            chartArea5.Name = "ChartArea1";
-            SpdChart.ChartAreas.Add(chartArea5);
-            legend5.Enabled = false;
-            legend5.Name = "Legend1";
-            SpdChart.Legends.Add(legend5);
+            chartArea2.AxisX.Title = "Time(s)";
+            chartArea2.AxisY.Title = "Ground Speed(m/s)";
+            chartArea2.Name = "ChartArea1";
+            SpdChart.ChartAreas.Add(chartArea2);
+            legend2.Enabled = false;
+            legend2.Name = "Legend1";
+            SpdChart.Legends.Add(legend2);
             SpdChart.Location = new Point(384, 14);
             SpdChart.Name = "SpdChart";
             SpdChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series5.Legend = "Legend1";
-            series5.Name = "Ground Speed(m/s)";
-            SpdChart.Series.Add(series5);
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series2.Legend = "Legend1";
+            series2.Name = "Ground Speed(m/s)";
+            SpdChart.Series.Add(series2);
             SpdChart.Size = new Size(340, 290);
             SpdChart.TabIndex = 2;
             SpdChart.Text = "chart2";
             // 
             // AltChart
             // 
-            chartArea6.AxisX.Title = "Time(s)";
-            chartArea6.AxisY.Title = "Altitute(m)";
-            chartArea6.Name = "ChartArea1";
-            AltChart.ChartAreas.Add(chartArea6);
-            legend6.Enabled = false;
-            legend6.Name = "Legend1";
-            AltChart.Legends.Add(legend6);
+            chartArea3.AxisX.Title = "Time(s)";
+            chartArea3.AxisY.Title = "Altitute(m)";
+            chartArea3.Name = "ChartArea1";
+            AltChart.ChartAreas.Add(chartArea3);
+            legend3.Enabled = false;
+            legend3.Name = "Legend1";
+            AltChart.Legends.Add(legend3);
             AltChart.Location = new Point(22, 14);
             AltChart.Name = "AltChart";
             AltChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Berry;
-            series6.ChartArea = "ChartArea1";
-            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series6.Legend = "Legend1";
-            series6.Name = "Altitute(m)";
-            AltChart.Series.Add(series6);
+            series3.ChartArea = "ChartArea1";
+            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series3.Legend = "Legend1";
+            series3.Name = "Altitute(m)";
+            AltChart.Series.Add(series3);
             AltChart.Size = new Size(340, 290);
             AltChart.TabIndex = 1;
             AltChart.Text = "chart1";
@@ -1864,17 +1859,25 @@
             GNSSalert.Name = "GNSSalert";
             GNSSalert.Size = new Size(60, 34);
             GNSSalert.TabIndex = 0;
-            GNSSalert.Text = "GNSS";
+            GNSSalert.Text = "GNS";
             GNSSalert.UseVisualStyleBackColor = false;
             // 
             // SettingsPanel
             // 
             SettingsPanel.BackColor = Color.Transparent;
+            SettingsPanel.Controls.Add(RocketAngel);
             SettingsPanel.Location = new Point(0, 0);
             SettingsPanel.Name = "SettingsPanel";
             SettingsPanel.Size = new Size(1600, 1000);
             SettingsPanel.TabIndex = 12;
             SettingsPanel.Visible = false;
+            // 
+            // RocketAngel
+            // 
+            RocketAngel.Location = new Point(0, 0);
+            RocketAngel.Name = "RocketAngel";
+            RocketAngel.Size = new Size(200, 100);
+            RocketAngel.TabIndex = 0;
             // 
             // TestStationPanel
             // 
@@ -1884,6 +1887,15 @@
             TestStationPanel.Size = new Size(2600, 1000);
             TestStationPanel.TabIndex = 3;
             TestStationPanel.Visible = false;
+            // 
+            // rocketAngleIndicator1
+            // 
+            rocketAngleIndicator1.Angle = 0F;
+            rocketAngleIndicator1.Location = new Point(123, 144);
+            rocketAngleIndicator1.Name = "rocketAngleIndicator1";
+            rocketAngleIndicator1.RocketImage = null;
+            rocketAngleIndicator1.Size = new Size(300, 300);
+            rocketAngleIndicator1.TabIndex = 3;
             // 
             // Astra
             // 
@@ -1915,6 +1927,7 @@
             RocketPanel.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             RocketAlert.ResumeLayout(false);
+            SettingsPanel.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -2064,5 +2077,6 @@
         private Button CameraDisconnectButton;
         private Button DisconnectHYIButton;
         private Button ConnectHYIButton;
+        private RocketAngleIndicator rocketAngleIndicator1;
     }
 }

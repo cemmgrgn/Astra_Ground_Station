@@ -316,14 +316,8 @@ namespace Astra_Ground_Station
             }
         }
 
-        private void rocketlogcheck_CheckedChanged(object sender, EventArgs e)
-        {
-        }
-
-        private void payloadlogcheck_CheckedChanged(object sender, EventArgs e)
-        {
-        }
-
+        private void rocketlogcheck_CheckedChanged(object sender, EventArgs e) { }
+        private void payloadlogcheck_CheckedChanged(object sender, EventArgs e) { }
         private void dat1baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat1com_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat2baud_SelectedIndexChanged(object sender, EventArgs e) { }

@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\ROKET.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AForge.Video" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="GMap.NET.Core" Version="2.1.7" />
@@ -16,6 +20,10 @@
     <PackageReference Include="GMap.NET.WinForms" Version="2.1.7" />
     <PackageReference Include="System.IO.Ports" Version="9.0.6" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\ROKET.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +39,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\rocket.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
