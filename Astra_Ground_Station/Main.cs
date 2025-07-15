@@ -818,22 +818,22 @@ namespace Astra_Ground_Station
                                 lastMapLat = rocketLat;
                                 lastMapLon = rocketLon;
                             }
-                            
+
                             if (float.TryParse(dat1ang.Text, out float angleValue))
                             {
-                                rocketAngleIndicator1.SetAngle(angleValue);
+                                RocketAngleIndicator.SetAngle(angleValue);
                             }
                             else
                             {
-                                rocketAngleIndicator1.SetAngle(0);
+                                RocketAngleIndicator.SetAngle(0);
                             }
-                            
+
                             UpdateStatusAlerts();
                             UpdateSensorAlerts();
                         }
                         else
                         {
-                            messageLabel.Text = "Eksik/invalid rocket veri!";
+                            messageLabel.Text = "invalid!";
                         }
                     }
                 });
@@ -1439,6 +1439,16 @@ namespace Astra_Ground_Station
         }
         private void SideMenu_Paint(object sender, PaintEventArgs e)
         {
+        }
+
+        private void SettingsPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void AngelPanel_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

@@ -39,8 +39,8 @@
             System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             SideMenu = new Panel();
-            DisconnectHYIButton = new Button();
             ConnectHYIButton = new Button();
+            DisconnectHYIButton = new Button();
             ConnectPayloadButton = new Button();
             DisconnectPayloadButton = new Button();
             messageLabel = new Label();
@@ -49,14 +49,16 @@
             AltLogo = new PictureBox();
             AstraText = new Label();
             AstraLogo = new PictureBox();
+            SettingsPanel = new Panel();
             SettingsButton = new Button();
             TestStationButton = new Button();
             GroundStationButton = new Button();
             dat1rocket = new Label();
             MainPanel = new Panel();
+            PosText = new Label();
+            AngelPanel = new Panel();
             graphtext = new Label();
             CamText = new Label();
-            PosText = new Label();
             RocketText = new Label();
             PayloadText = new Label();
             SatPanel = new Panel();
@@ -175,14 +177,13 @@
             FSCalert = new Button();
             ALTalert = new Button();
             GNSSalert = new Button();
-            SettingsPanel = new Panel();
-            RocketAngel = new Panel();
             TestStationPanel = new Panel();
-            rocketAngleIndicator1 = new RocketAngleIndicator();
+            RocketAngleIndicator = new RocketAngleIndicator();
             SideMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AltLogo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)AstraLogo).BeginInit();
             MainPanel.SuspendLayout();
+            AngelPanel.SuspendLayout();
             SatPanel.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             SatAlert.SuspendLayout();
@@ -195,14 +196,13 @@
             RocketPanel.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             RocketAlert.SuspendLayout();
-            SettingsPanel.SuspendLayout();
             SuspendLayout();
             // 
             // SideMenu
             // 
             SideMenu.BackColor = Color.FromArgb(40, 40, 40);
-            SideMenu.Controls.Add(DisconnectHYIButton);
             SideMenu.Controls.Add(ConnectHYIButton);
+            SideMenu.Controls.Add(DisconnectHYIButton);
             SideMenu.Controls.Add(ConnectPayloadButton);
             SideMenu.Controls.Add(DisconnectPayloadButton);
             SideMenu.Controls.Add(messageLabel);
@@ -211,6 +211,7 @@
             SideMenu.Controls.Add(AltLogo);
             SideMenu.Controls.Add(AstraText);
             SideMenu.Controls.Add(AstraLogo);
+            SideMenu.Controls.Add(SettingsPanel);
             SideMenu.Controls.Add(SettingsButton);
             SideMenu.Controls.Add(TestStationButton);
             SideMenu.Controls.Add(GroundStationButton);
@@ -220,20 +221,6 @@
             SideMenu.Size = new Size(300, 1001);
             SideMenu.TabIndex = 1;
             SideMenu.Paint += SideMenu_Paint;
-            // 
-            // DisconnectHYIButton
-            // 
-            DisconnectHYIButton.BackColor = Color.White;
-            DisconnectHYIButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
-            DisconnectHYIButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            DisconnectHYIButton.ForeColor = Color.Crimson;
-            DisconnectHYIButton.Location = new Point(25, 817);
-            DisconnectHYIButton.Name = "DisconnectHYIButton";
-            DisconnectHYIButton.Size = new Size(250, 50);
-            DisconnectHYIButton.TabIndex = 16;
-            DisconnectHYIButton.Text = "Disconnect HYI";
-            DisconnectHYIButton.UseVisualStyleBackColor = false;
-            DisconnectHYIButton.Visible = false;
             // 
             // ConnectHYIButton
             // 
@@ -248,6 +235,20 @@
             ConnectHYIButton.TabIndex = 15;
             ConnectHYIButton.Text = "Connect HYI";
             ConnectHYIButton.UseVisualStyleBackColor = false;
+            // 
+            // DisconnectHYIButton
+            // 
+            DisconnectHYIButton.BackColor = Color.White;
+            DisconnectHYIButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            DisconnectHYIButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            DisconnectHYIButton.ForeColor = Color.Crimson;
+            DisconnectHYIButton.Location = new Point(25, 761);
+            DisconnectHYIButton.Name = "DisconnectHYIButton";
+            DisconnectHYIButton.Size = new Size(250, 50);
+            DisconnectHYIButton.TabIndex = 16;
+            DisconnectHYIButton.Text = "Disconnect HYI";
+            DisconnectHYIButton.UseVisualStyleBackColor = false;
+            DisconnectHYIButton.Visible = false;
             // 
             // ConnectPayloadButton
             // 
@@ -346,6 +347,15 @@
             AstraLogo.TabIndex = 7;
             AstraLogo.TabStop = false;
             // 
+            // SettingsPanel
+            // 
+            SettingsPanel.BackColor = Color.Transparent;
+            SettingsPanel.Location = new Point(300, 1);
+            SettingsPanel.Name = "SettingsPanel";
+            SettingsPanel.Size = new Size(1600, 1000);
+            SettingsPanel.TabIndex = 12;
+            SettingsPanel.Visible = false;
+            // 
             // SettingsButton
             // 
             SettingsButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold);
@@ -391,22 +401,43 @@
             // 
             // MainPanel
             // 
+            MainPanel.Controls.Add(PosText);
+            MainPanel.Controls.Add(AngelPanel);
             MainPanel.Controls.Add(graphtext);
             MainPanel.Controls.Add(CamText);
-            MainPanel.Controls.Add(PosText);
             MainPanel.Controls.Add(RocketText);
             MainPanel.Controls.Add(PayloadText);
             MainPanel.Controls.Add(SatPanel);
             MainPanel.Controls.Add(CamPanel);
             MainPanel.Controls.Add(GraphPanel);
             MainPanel.Controls.Add(RocketPanel);
-            MainPanel.Controls.Add(SettingsPanel);
             MainPanel.Dock = DockStyle.Top;
             MainPanel.Location = new Point(300, 0);
             MainPanel.Margin = new Padding(30);
             MainPanel.Name = "MainPanel";
             MainPanel.Size = new Size(1604, 1000);
             MainPanel.TabIndex = 2;
+            // 
+            // PosText
+            // 
+            PosText.AutoSize = true;
+            PosText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            PosText.ForeColor = SystemColors.ButtonFace;
+            PosText.Location = new Point(662, 13);
+            PosText.Name = "PosText";
+            PosText.Size = new Size(173, 18);
+            PosText.TabIndex = 9;
+            PosText.Text = "Rocket Orientation";
+            // 
+            // AngelPanel
+            // 
+            AngelPanel.BorderStyle = BorderStyle.FixedSingle;
+            AngelPanel.Controls.Add(RocketAngleIndicator);
+            AngelPanel.Location = new Point(636, 21);
+            AngelPanel.Name = "AngelPanel";
+            AngelPanel.Size = new Size(327, 308);
+            AngelPanel.TabIndex = 1;
+            AngelPanel.Paint += AngelPanel_Paint;
             // 
             // graphtext
             // 
@@ -429,17 +460,6 @@
             CamText.Size = new Size(77, 18);
             CamText.TabIndex = 10;
             CamText.Text = "Camera";
-            // 
-            // PosText
-            // 
-            PosText.AutoSize = true;
-            PosText.Font = new Font("Verdana", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            PosText.ForeColor = SystemColors.ButtonFace;
-            PosText.Location = new Point(662, 13);
-            PosText.Name = "PosText";
-            PosText.Size = new Size(173, 18);
-            PosText.TabIndex = 9;
-            PosText.Text = "Rocket Orientation";
             // 
             // RocketText
             // 
@@ -1099,7 +1119,6 @@
             // CamPanel
             // 
             CamPanel.BorderStyle = BorderStyle.FixedSingle;
-            CamPanel.Controls.Add(rocketAngleIndicator1);
             CamPanel.Controls.Add(CameraConnectButton);
             CamPanel.Controls.Add(CameraDisconnectButton);
             CamPanel.Controls.Add(pictureBox1);
@@ -1862,23 +1881,6 @@
             GNSSalert.Text = "GNS";
             GNSSalert.UseVisualStyleBackColor = false;
             // 
-            // SettingsPanel
-            // 
-            SettingsPanel.BackColor = Color.Transparent;
-            SettingsPanel.Controls.Add(RocketAngel);
-            SettingsPanel.Location = new Point(0, 0);
-            SettingsPanel.Name = "SettingsPanel";
-            SettingsPanel.Size = new Size(1600, 1000);
-            SettingsPanel.TabIndex = 12;
-            SettingsPanel.Visible = false;
-            // 
-            // RocketAngel
-            // 
-            RocketAngel.Location = new Point(0, 0);
-            RocketAngel.Name = "RocketAngel";
-            RocketAngel.Size = new Size(200, 100);
-            RocketAngel.TabIndex = 0;
-            // 
             // TestStationPanel
             // 
             TestStationPanel.BackColor = Color.FromArgb(28, 28, 28);
@@ -1888,14 +1890,14 @@
             TestStationPanel.TabIndex = 3;
             TestStationPanel.Visible = false;
             // 
-            // rocketAngleIndicator1
+            // RocketAngleIndicator
             // 
-            rocketAngleIndicator1.Angle = 0F;
-            rocketAngleIndicator1.Location = new Point(123, 144);
-            rocketAngleIndicator1.Name = "rocketAngleIndicator1";
-            rocketAngleIndicator1.RocketImage = null;
-            rocketAngleIndicator1.Size = new Size(300, 300);
-            rocketAngleIndicator1.TabIndex = 3;
+            RocketAngleIndicator.Angle = 175F;
+            RocketAngleIndicator.Location = new Point(13, 7);
+            RocketAngleIndicator.Name = "RocketAngleIndicator";
+            RocketAngleIndicator.RocketImage = (Image)resources.GetObject("RocketAngleIndicator.RocketImage");
+            RocketAngleIndicator.Size = new Size(300, 300);
+            RocketAngleIndicator.TabIndex = 0;
             // 
             // Astra
             // 
@@ -1915,6 +1917,7 @@
             ((System.ComponentModel.ISupportInitialize)AstraLogo).EndInit();
             MainPanel.ResumeLayout(false);
             MainPanel.PerformLayout();
+            AngelPanel.ResumeLayout(false);
             SatPanel.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);
             SatAlert.ResumeLayout(false);
@@ -1927,7 +1930,6 @@
             RocketPanel.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             RocketAlert.ResumeLayout(false);
-            SettingsPanel.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -1999,7 +2001,6 @@
         private Label calcalttext;
         private Panel GraphPanel;
         private Panel CamPanel;
-        private Panel RocketAngel;
         private Panel SatPanel;
         private TableLayoutPanel tableLayoutPanel2;
         private Label gyroxtext2;
@@ -2077,6 +2078,9 @@
         private Button CameraDisconnectButton;
         private Button DisconnectHYIButton;
         private Button ConnectHYIButton;
+        private Panel AngelPanel;
         private RocketAngleIndicator rocketAngleIndicator1;
+        private RocketAngleIndicator AngleIndicator;
+        private RocketAngleIndicator RocketAngleIndicator;
     }
 }

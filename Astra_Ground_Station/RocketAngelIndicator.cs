@@ -7,7 +7,7 @@ namespace Astra_Ground_Station
 {
     public partial class RocketAngleIndicator : UserControl
     {
-        private float _angle = 0;
+        private float _angle = 175;
         private Image _rocketImage;
 
         private const int RocketWidth = 160;
@@ -26,23 +26,20 @@ namespace Astra_Ground_Station
             {
                 this.RocketImage = null;
             }
-
         }
 
-        [Description("Roketin yer ile yaptığı açı"), Category("Gösterge"), DefaultValue(0)]
         public float Angle
         {
             get => _angle;
             set
             {
-                if (value < -90) value = -90;
-                if (value > 90) value = 90;
+                if (value < 0) value = 0;
+                if (value > 180) value = 180;
                 _angle = value;
                 Invalidate();
             }
         }
 
-        [Description("Roket görseli"), Category("Gösterge")]
         public Image RocketImage
         {
             get => _rocketImage;
@@ -58,25 +55,32 @@ namespace Astra_Ground_Station
             base.OnPaint(e);
 
             int groundY = 150;
-
-            using (Pen groundPen = new Pen(Color.Black, 1))
-                e.Graphics.DrawLine(groundPen, 0, groundY, Width, groundY);
-
             int pivotX = 150;
             int pivotY = groundY;
 
+            using (Pen groundPen = new Pen(Color.Black, 1))
+                e.Graphics.DrawLine(groundPen, pivotX, groundY, Width, groundY);
+
+            float displayAngle = -_angle + 270;
+
             e.Graphics.TranslateTransform(pivotX, pivotY);
-            e.Graphics.RotateTransform(_angle);
+            e.Graphics.RotateTransform(displayAngle);
 
             if (_rocketImage != null)
             {
-                e.Graphics.TranslateTransform(-_rocketImage.Width / 2, -_rocketImage.Height);
+                e.Graphics.TranslateTransform(-_rocketImage.Width / 2, -_rocketImage.Height + 8);
                 e.Graphics.DrawImage(_rocketImage, 0, 0, _rocketImage.Width, _rocketImage.Height);
             }
             else
             {
-                e.Graphics.TranslateTransform(-RocketWidth / 2, -RocketHeight);
-                e.Graphics.FillRectangle(Brushes.Gray, 0, 0, RocketWidth, RocketHeight);
+                Point[] arrowPoints = new Point[]
+                {
+                    new Point(RocketWidth / 2, 0),
+                    new Point(0, RocketHeight),
+                    new Point(RocketWidth, RocketHeight)
+                };
+                e.Graphics.TranslateTransform(-RocketWidth / 2, -RocketHeight + 8);
+                e.Graphics.FillPolygon(Brushes.Gray, arrowPoints);
             }
 
             e.Graphics.ResetTransform();
