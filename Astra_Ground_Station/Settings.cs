@@ -5,7 +5,6 @@ using System.Drawing;
 using System.IO;
 using AForge.Video;
 using AForge.Video.DirectShow;
-using System.Text.Json;
 
 namespace Astra_Ground_Station
 {
@@ -13,7 +12,7 @@ namespace Astra_Ground_Station
     {
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
-        private readonly string settingsFile = "settings.json";
+        private readonly string settingsFile = "settings.csv";
 
         public Settings()
         {
@@ -219,9 +218,9 @@ namespace Astra_Ground_Station
                         statusLabel.ForeColor = Color.Red;
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    statusLabel.Text = $"Not available: Error - {ex.Message}";
+                    statusLabel.Text = "Not available: Error.";
                     statusLabel.ForeColor = Color.Red;
                 }
             }
@@ -264,21 +263,32 @@ namespace Astra_Ground_Station
 
         private void SaveSettingsToFile()
         {
-            var settings = new AppSettings
+            var RocketCom = dat1com.Text;
+            var RocketBaud = int.TryParse(dat1baud.Text, out int rb) ? rb : 9600;
+            var PayloadCom = dat2com.Text;
+            var PayloadBaud = int.TryParse(dat2baud.Text, out int pb) ? pb : 9600;
+            var HYICom = dat3com.Text;
+            var HYIBaud = int.TryParse(dat3baud.Text, out int hb) ? hb : 19200;
+            var HYIHertz = int.TryParse(HYIhertz.Text, out int hh) ? hh : 5;
+            var Camera = cameraCombo.Text;
+            var TeamID = byte.TryParse(teadidinput.Text, out byte tid) ? tid : (byte)0;
+            var RocketLogEnabled = rocketlogcheck.Checked ? "1" : "0";
+            var PayloadLogEnabled = payloadlogcheck.Checked ? "1" : "0";
+
+            using (var writer = new StreamWriter(settingsFile, false, System.Text.Encoding.UTF8))
             {
-                RocketCom = dat1com.Text,
-                RocketBaud = int.TryParse(dat1baud.Text, out int rb) ? rb : 9600,
-                PayloadCom = dat2com.Text,
-                PayloadBaud = int.TryParse(dat2baud.Text, out int pb) ? pb : 9600,
-                HYICom = dat3com.Text,
-                HYIBaud = int.TryParse(dat3baud.Text, out int hb) ? hb : 19200,
-                HYIHertz = int.TryParse(HYIhertz.Text, out int hh) ? hh : 5,
-                Camera = cameraCombo.Text,
-                TeamID = byte.TryParse(teadidinput.Text, out byte tid) ? tid : (byte)0,
-                RocketLogEnabled = rocketlogcheck.Checked,
-                PayloadLogEnabled = payloadlogcheck.Checked
-            };
-            File.WriteAllText(settingsFile, JsonSerializer.Serialize(settings));
+                writer.WriteLine("RocketCom," + RocketCom);
+                writer.WriteLine("RocketBaud," + RocketBaud);
+                writer.WriteLine("PayloadCom," + PayloadCom);
+                writer.WriteLine("PayloadBaud," + PayloadBaud);
+                writer.WriteLine("HYICom," + HYICom);
+                writer.WriteLine("HYIBaud," + HYIBaud);
+                writer.WriteLine("HYIHertz," + HYIHertz);
+                writer.WriteLine("Camera," + Camera);
+                writer.WriteLine("TeamID," + TeamID);
+                writer.WriteLine("RocketLogEnabled," + RocketLogEnabled);
+                writer.WriteLine("PayloadLogEnabled," + PayloadLogEnabled);
+            }
         }
 
         private void LoadSettingsFromFile()
@@ -288,18 +298,28 @@ namespace Astra_Ground_Station
 
             try
             {
-                var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(settingsFile));
-                SelectComboBoxItem(dat1com, settings.RocketCom);
-                SelectComboBoxItem(dat1baud, settings.RocketBaud.ToString());
-                SelectComboBoxItem(dat2com, settings.PayloadCom);
-                SelectComboBoxItem(dat2baud, settings.PayloadBaud.ToString());
-                SelectComboBoxItem(dat3com, settings.HYICom);
-                SelectComboBoxItem(dat3baud, settings.HYIBaud.ToString());
-                HYIhertz.Text = settings.HYIHertz.ToString();
-                SelectComboBoxItem(cameraCombo, settings.Camera);
-                teadidinput.Text = settings.TeamID.ToString();
-                rocketlogcheck.Checked = settings.RocketLogEnabled;
-                payloadlogcheck.Checked = settings.PayloadLogEnabled;
+                var lines = File.ReadAllLines(settingsFile);
+                foreach (var line in lines)
+                {
+                    var parts = line.Split(',');
+                    if (parts.Length != 2) continue;
+                    var key = parts[0];
+                    var value = parts[1];
+                    switch (key)
+                    {
+                        case "RocketCom": SelectComboBoxItem(dat1com, value); break;
+                        case "RocketBaud": SelectComboBoxItem(dat1baud, value); break;
+                        case "PayloadCom": SelectComboBoxItem(dat2com, value); break;
+                        case "PayloadBaud": SelectComboBoxItem(dat2baud, value); break;
+                        case "HYICom": SelectComboBoxItem(dat3com, value); break;
+                        case "HYIBaud": SelectComboBoxItem(dat3baud, value); break;
+                        case "HYIHertz": HYIhertz.Text = value; break;
+                        case "Camera": SelectComboBoxItem(cameraCombo, value); break;
+                        case "TeamID": teadidinput.Text = value; break;
+                        case "RocketLogEnabled": rocketlogcheck.Checked = value == "1"; break;
+                        case "PayloadLogEnabled": payloadlogcheck.Checked = value == "1"; break;
+                    }
+                }
             }
             catch { }
         }
@@ -325,5 +345,4 @@ namespace Astra_Ground_Station
         private void dat3baud_SelectedIndexChanged(object sender, EventArgs e) { }
         private void dat3com_SelectedIndexChanged(object sender, EventArgs e) { }
     }
-
 }

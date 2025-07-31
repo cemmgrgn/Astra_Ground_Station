@@ -1,5 +1,7 @@
 ﻿using AForge.Video;
 using AForge.Video.DirectShow;
+using OpenCvSharp;
+//using OpenCVSharp.Extensions;
 using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsForms;
@@ -98,7 +100,7 @@ namespace Astra_Ground_Station
         private bool rocketLogEnabledSetting = false;
         private bool payloadLogEnabledSetting = false;
 
-        // --- Constructor & Initialization ---
+        // --- Initialization ---
 
         public Astra()
         {
@@ -122,6 +124,9 @@ namespace Astra_Ground_Station
             DisconnectHYIButton.Click += DisconnectHYIButton_Click;
             this.FormClosing += Astra_FormClosing;
             this.Load += Astra_Load;
+            capimg.Click += capimg_Click;
+            capvid.Click += capvid_Click;
+            stpcapvid.Click += stpcapvid_Click;
         }
 
         private void InitControls()
@@ -257,13 +262,14 @@ namespace Astra_Ground_Station
         ) ReadSerialSettingsHYI()
         {
             string settingsFile = "settings.csv";
-            string rocketCom = "COM100";
-            int rocketBaud = 9600;
+            string rocketCom = "COM15";
+            int rocketBaud = 115200;
             string payloadCom = "COM102";
             int payloadBaud = 9600;
             string hyiCom = "COM104";
             int hyiBaud = 19200;
             int hyiHertz = 5;
+
             string camera = "";
             byte tid = 0;
 
@@ -322,6 +328,38 @@ namespace Astra_Ground_Station
 
         // --- Camera ---
 
+    private void capimg_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (pictureBox1.Image != null)
+                {
+                    string folder = "captures";
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string filename = Path.Combine(folder, $"image_{DateTime.Now:yyyyMMdd_HHmmss_fff}.jpg");
+
+                    using (Bitmap bmp = new Bitmap(pictureBox1.Image))
+                    {
+                        bmp.Save(filename, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+
+                    messageLabel.Text = $"Görüntü kaydedildi: {filename}";
+                }
+                else
+                {
+                    messageLabel.Text = "Kamera görüntüsü yok!";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "capimg_Click");
+                messageLabel.Text = "Görüntü kaydedilemedi!";
+            }
+        }
+
+
         private void CameraConnectButton_Click(object sender, EventArgs e)
         {
             try
@@ -346,7 +384,7 @@ namespace Astra_Ground_Station
 
                 if (string.IsNullOrEmpty(cameraMonikerString))
                 {
-                    messageLabel.Text = "Camera port yok (settings.csv)";
+                    messageLabel.Text = "Camera port does not exist (settings.csv)";
                     return;
                 }
 
@@ -363,7 +401,7 @@ namespace Astra_Ground_Station
 
                 if (selectedDevice == null)
                 {
-                    messageLabel.Text = "Kamera bulunamadı!";
+                    messageLabel.Text = "Camera not found!";
                     return;
                 }
 
@@ -373,7 +411,7 @@ namespace Astra_Ground_Station
                 videoSource.NewFrame += videoSource_NewFrame;
                 videoSource.Start();
 
-                messageLabel.Text = "Kamera başlatıldı.";
+                messageLabel.Text = "Camera is open.";
 
                 CameraConnectButton.Enabled = false;
                 CameraConnectButton.Visible = false;
@@ -383,7 +421,7 @@ namespace Astra_Ground_Station
             catch (Exception ex)
             {
                 LogError(ex, "CameraConnectButton_Click");
-                messageLabel.Text = "Kamera başlatılırken hata!";
+                messageLabel.Text = "Camera error!";
             }
         }
 
@@ -392,7 +430,7 @@ namespace Astra_Ground_Station
             try
             {
                 StopCamera();
-                messageLabel.Text = "Kamera bağlantısı kapatıldı.";
+                messageLabel.Text = "Kamera closed.";
 
                 CameraConnectButton.Enabled = true;
                 CameraConnectButton.Visible = true;
@@ -402,7 +440,7 @@ namespace Astra_Ground_Station
             catch (Exception ex)
             {
                 LogError(ex, "CameraDisconnectButton_Click");
-                messageLabel.Text = "Kamera bağlantısı kapatılamadı!";
+                messageLabel.Text = "Camera connot closed!";
             }
         }
 
@@ -469,7 +507,7 @@ namespace Astra_Ground_Station
             }
         }
 
-        // --- Serial Port Connections ---
+        // --- Serial Port ---
 
         private void ConnectButton_Click(object sender, EventArgs e)
         {
@@ -654,7 +692,7 @@ namespace Astra_Ground_Station
                     catch (Exception ex)
                     {
                         LogError(ex, "ConnectHYIButton_Click_open");
-                        messageLabel.Text = "HYI port açılamadı!";
+                        messageLabel.Text = "HYI can't open!";
                         isHYIConnected = false;
                         try { serialPortHYI.Dispose(); } catch { }
                         serialPortHYI = null;
@@ -664,7 +702,7 @@ namespace Astra_Ground_Station
             catch (Exception ex)
             {
                 LogError(ex, "ConnectHYIButton_Click");
-                messageLabel.Text = "HYI bağlantı hatası!";
+                messageLabel.Text = "HYI false connection!";
             }
         }
 
@@ -700,7 +738,7 @@ namespace Astra_Ground_Station
                     LogError(ex, "DisconnectHYIButton_Click");
                     RunOnUiThread(() =>
                     {
-                        messageLabel.Text = "HYI bağlantısı kapatılamadı!";
+                        messageLabel.Text = "HYI error!";
                     });
                 }
             });
@@ -818,14 +856,17 @@ namespace Astra_Ground_Station
                                 lastMapLat = rocketLat;
                                 lastMapLon = rocketLon;
                             }
-
-                            if (float.TryParse(dat1ang.Text, out float angleValue))
+                            
+                            if (rocketAngleIndicator1 != null && dat1ang != null)
                             {
-                                RocketAngleIndicator.SetAngle(angleValue);
-                            }
-                            else
-                            {
-                                RocketAngleIndicator.SetAngle(0);
+                                if (float.TryParse(dat1ang.Text, out float angleValue))
+                                {
+                                    rocketAngleIndicator1.SetAngle(angleValue);
+                                }
+                                else
+                                {
+                                    rocketAngleIndicator1.SetAngle(0);
+                                }
                             }
 
                             UpdateStatusAlerts();
@@ -833,7 +874,7 @@ namespace Astra_Ground_Station
                         }
                         else
                         {
-                            messageLabel.Text = "invalid!";
+                            messageLabel.Text = "Invalid rocket data!";
                         }
                     }
                 });
@@ -905,7 +946,7 @@ namespace Astra_Ground_Station
                         }
                         else
                         {
-                            messageLabel.Text = "Eksik/invalid payload veri!";
+                            messageLabel.Text = "Invalid payload!";
                         }
                     }
                 });
@@ -932,7 +973,7 @@ namespace Astra_Ground_Station
         {
             if (serialPortHYI == null || !serialPortHYI.IsOpen)
             {
-                messageLabel.Text = "HYI portu bağlı değil, paket gönderilemiyor.";
+                messageLabel.Text = "HYI not connected.";
                 return;
             }
 
@@ -1021,12 +1062,12 @@ namespace Astra_Ground_Station
                 serialPortHYI.Write(packet, 0, 78);
                 hyiPacketCounter++;
                 if (hyiPacketCounter > 255) hyiPacketCounter = 0;
-                messageLabel.Text = $"HYI paket gönderildi {DateTime.Now:HH:mm:ss.fff}";
+                messageLabel.Text = $"HYI data sent {DateTime.Now:HH:mm:ss.fff}.";
             }
             catch (Exception ex)
             {
                 LogError(ex, "SendHYIPacket");
-                messageLabel.Text = "HYI gönderim hatası!";
+                messageLabel.Text = "HYI send error!";
             }
         }
 
@@ -1437,16 +1478,13 @@ namespace Astra_Ground_Station
             payloadLogFile = Path.Combine("logs", $"Astra_Payload_{dateStr}.txt");
             try { File.WriteAllText(payloadLogFile, ""); } catch (Exception ex) { LogError(ex, "CreatePayloadLogFile"); }
         }
-        private void SideMenu_Paint(object sender, PaintEventArgs e)
-        {
-        }
 
-        private void SettingsPanel_Paint(object sender, PaintEventArgs e)
+        private void capvid_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void AngelPanel_Paint(object sender, PaintEventArgs e)
+        private void stpcapvid_Click(object sender, EventArgs e)
         {
 
         }

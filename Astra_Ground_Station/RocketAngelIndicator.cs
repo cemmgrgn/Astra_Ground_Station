@@ -7,7 +7,7 @@ namespace Astra_Ground_Station
 {
     public partial class RocketAngleIndicator : UserControl
     {
-        private float _angle = 175;
+        private float _angle = -85;
         private Image _rocketImage;
 
         private const int RocketWidth = 160;
@@ -20,7 +20,11 @@ namespace Astra_Ground_Station
 
             try
             {
-                this.RocketImage = Properties.Resources.rocket;
+                this.RocketImage = Properties.Resources.ozgunroket;
+                if (this.RocketImage != null)
+                {
+                    this.RocketImage = new Bitmap(this.RocketImage, new Size(RocketWidth, RocketHeight));
+                }
             }
             catch
             {
@@ -33,8 +37,8 @@ namespace Astra_Ground_Station
             get => _angle;
             set
             {
-                if (value < 0) value = 0;
-                if (value > 180) value = 180;
+                if (value < -90) value = -90;
+                if (value > 90) value = 90;
                 _angle = value;
                 Invalidate();
             }
@@ -55,32 +59,25 @@ namespace Astra_Ground_Station
             base.OnPaint(e);
 
             int groundY = 150;
+
+            using (Pen groundPen = new Pen(Color.Black, 1))
+                e.Graphics.DrawLine(groundPen, 0, groundY, Width, groundY);
+
             int pivotX = 150;
             int pivotY = groundY;
 
-            using (Pen groundPen = new Pen(Color.Black, 1))
-                e.Graphics.DrawLine(groundPen, pivotX, groundY, Width, groundY);
-
-            float displayAngle = -_angle + 270;
-
             e.Graphics.TranslateTransform(pivotX, pivotY);
-            e.Graphics.RotateTransform(displayAngle);
+            e.Graphics.RotateTransform(_angle);
 
             if (_rocketImage != null)
             {
-                e.Graphics.TranslateTransform(-_rocketImage.Width / 2, -_rocketImage.Height + 8);
+                e.Graphics.TranslateTransform(-_rocketImage.Width / 2, -_rocketImage.Height);
                 e.Graphics.DrawImage(_rocketImage, 0, 0, _rocketImage.Width, _rocketImage.Height);
             }
             else
             {
-                Point[] arrowPoints = new Point[]
-                {
-                    new Point(RocketWidth / 2, 0),
-                    new Point(0, RocketHeight),
-                    new Point(RocketWidth, RocketHeight)
-                };
-                e.Graphics.TranslateTransform(-RocketWidth / 2, -RocketHeight + 8);
-                e.Graphics.FillPolygon(Brushes.Gray, arrowPoints);
+                e.Graphics.TranslateTransform(-RocketWidth / 2, -RocketHeight);
+                e.Graphics.FillRectangle(Brushes.Gray, 0, 0, RocketWidth, RocketHeight);
             }
 
             e.Graphics.ResetTransform();
@@ -88,7 +85,23 @@ namespace Astra_Ground_Station
 
         public void SetAngle(float angle)
         {
-            Angle = angle;
+            if (this.IsDisposed || !this.IsHandleCreated)
+                return;
+
+            if (this.InvokeRequired)
+            {
+                try
+                {
+                    this.Invoke((MethodInvoker)(() => SetAngle(angle)));
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
+            else
+            {
+                Angle = angle;
+            }
         }
     }
 }

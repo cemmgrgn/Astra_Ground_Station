@@ -83,6 +83,16 @@ namespace Astra_Ground_Station.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ozgunroket {
+            get {
+                object obj = ResourceManager.GetObject("ozgunroket", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap refreshicon {
             get {
                 object obj = ResourceManager.GetObject("refreshicon", resourceCulture);

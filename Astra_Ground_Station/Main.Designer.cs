@@ -49,14 +49,13 @@
             AltLogo = new PictureBox();
             AstraText = new Label();
             AstraLogo = new PictureBox();
-            SettingsPanel = new Panel();
             SettingsButton = new Button();
             TestStationButton = new Button();
             GroundStationButton = new Button();
             dat1rocket = new Label();
             MainPanel = new Panel();
             PosText = new Label();
-            AngelPanel = new Panel();
+            panel1 = new Panel();
             graphtext = new Label();
             CamText = new Label();
             RocketText = new Label();
@@ -116,6 +115,9 @@
             ALTalert2 = new Button();
             GNSSalert2 = new Button();
             CamPanel = new Panel();
+            capvid = new Button();
+            stpcapvid = new Button();
+            capimg = new Button();
             CameraConnectButton = new Button();
             CameraDisconnectButton = new Button();
             pictureBox1 = new PictureBox();
@@ -177,13 +179,14 @@
             FSCalert = new Button();
             ALTalert = new Button();
             GNSSalert = new Button();
+            SettingsPanel = new Panel();
             TestStationPanel = new Panel();
-            RocketAngleIndicator = new RocketAngleIndicator();
+            rocketAngleIndicator1 = new RocketAngleIndicator();
             SideMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AltLogo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)AstraLogo).BeginInit();
             MainPanel.SuspendLayout();
-            AngelPanel.SuspendLayout();
+            panel1.SuspendLayout();
             SatPanel.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             SatAlert.SuspendLayout();
@@ -211,7 +214,6 @@
             SideMenu.Controls.Add(AltLogo);
             SideMenu.Controls.Add(AstraText);
             SideMenu.Controls.Add(AstraLogo);
-            SideMenu.Controls.Add(SettingsPanel);
             SideMenu.Controls.Add(SettingsButton);
             SideMenu.Controls.Add(TestStationButton);
             SideMenu.Controls.Add(GroundStationButton);
@@ -220,7 +222,6 @@
             SideMenu.Name = "SideMenu";
             SideMenu.Size = new Size(300, 1001);
             SideMenu.TabIndex = 1;
-            SideMenu.Paint += SideMenu_Paint;
             // 
             // ConnectHYIButton
             // 
@@ -347,15 +348,6 @@
             AstraLogo.TabIndex = 7;
             AstraLogo.TabStop = false;
             // 
-            // SettingsPanel
-            // 
-            SettingsPanel.BackColor = Color.Transparent;
-            SettingsPanel.Location = new Point(300, 1);
-            SettingsPanel.Name = "SettingsPanel";
-            SettingsPanel.Size = new Size(1600, 1000);
-            SettingsPanel.TabIndex = 12;
-            SettingsPanel.Visible = false;
-            // 
             // SettingsButton
             // 
             SettingsButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold);
@@ -402,7 +394,7 @@
             // MainPanel
             // 
             MainPanel.Controls.Add(PosText);
-            MainPanel.Controls.Add(AngelPanel);
+            MainPanel.Controls.Add(panel1);
             MainPanel.Controls.Add(graphtext);
             MainPanel.Controls.Add(CamText);
             MainPanel.Controls.Add(RocketText);
@@ -411,6 +403,7 @@
             MainPanel.Controls.Add(CamPanel);
             MainPanel.Controls.Add(GraphPanel);
             MainPanel.Controls.Add(RocketPanel);
+            MainPanel.Controls.Add(SettingsPanel);
             MainPanel.Dock = DockStyle.Top;
             MainPanel.Location = new Point(300, 0);
             MainPanel.Margin = new Padding(30);
@@ -429,15 +422,14 @@
             PosText.TabIndex = 9;
             PosText.Text = "Rocket Orientation";
             // 
-            // AngelPanel
+            // panel1
             // 
-            AngelPanel.BorderStyle = BorderStyle.FixedSingle;
-            AngelPanel.Controls.Add(RocketAngleIndicator);
-            AngelPanel.Location = new Point(636, 21);
-            AngelPanel.Name = "AngelPanel";
-            AngelPanel.Size = new Size(327, 308);
-            AngelPanel.TabIndex = 1;
-            AngelPanel.Paint += AngelPanel_Paint;
+            panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(rocketAngleIndicator1);
+            panel1.Location = new Point(625, 21);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(350, 300);
+            panel1.TabIndex = 13;
             // 
             // graphtext
             // 
@@ -1119,6 +1111,9 @@
             // CamPanel
             // 
             CamPanel.BorderStyle = BorderStyle.FixedSingle;
+            CamPanel.Controls.Add(capvid);
+            CamPanel.Controls.Add(stpcapvid);
+            CamPanel.Controls.Add(capimg);
             CamPanel.Controls.Add(CameraConnectButton);
             CamPanel.Controls.Add(CameraDisconnectButton);
             CamPanel.Controls.Add(pictureBox1);
@@ -1127,24 +1122,73 @@
             CamPanel.Size = new Size(770, 625);
             CamPanel.TabIndex = 4;
             // 
+            // capvid
+            // 
+            capvid.BackColor = Color.White;
+            capvid.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            capvid.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            capvid.ForeColor = Color.DimGray;
+            capvid.Location = new Point(422, 554);
+            capvid.Name = "capvid";
+            capvid.Size = new Size(250, 50);
+            capvid.TabIndex = 14;
+            capvid.Text = "Record";
+            capvid.UseVisualStyleBackColor = false;
+            capvid.Click += capvid_Click;
+            // 
+            // stpcapvid
+            // 
+            stpcapvid.BackColor = Color.White;
+            stpcapvid.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            stpcapvid.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            stpcapvid.ForeColor = Color.DimGray;
+            stpcapvid.Location = new Point(422, 554);
+            stpcapvid.Name = "stpcapvid";
+            stpcapvid.Size = new Size(250, 50);
+            stpcapvid.TabIndex = 15;
+            stpcapvid.Text = "Stop Record";
+            stpcapvid.UseVisualStyleBackColor = false;
+            stpcapvid.Click += stpcapvid_Click;
+            // 
+            // capimg
+            // 
+            capimg.BackColor = Color.White;
+            capimg.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            capimg.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            capimg.ForeColor = Color.DimGray;
+            capimg.Location = new Point(96, 554);
+            capimg.Name = "capimg";
+            capimg.Size = new Size(250, 50);
+            capimg.TabIndex = 13;
+            capimg.Text = "Capture Image";
+            capimg.UseVisualStyleBackColor = false;
+            capimg.Click += capimg_Click;
+            // 
             // CameraConnectButton
             // 
-            CameraConnectButton.Location = new Point(39, 14);
+            CameraConnectButton.BackColor = Color.White;
+            CameraConnectButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            CameraConnectButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            CameraConnectButton.ForeColor = Color.DarkGreen;
+            CameraConnectButton.Location = new Point(16, 14);
             CameraConnectButton.Name = "CameraConnectButton";
-            CameraConnectButton.Size = new Size(75, 23);
-            CameraConnectButton.TabIndex = 1;
-            CameraConnectButton.Text = "Connect";
-            CameraConnectButton.UseVisualStyleBackColor = true;
-            CameraConnectButton.Click += CameraConnectButton_Click;
+            CameraConnectButton.Size = new Size(250, 50);
+            CameraConnectButton.TabIndex = 11;
+            CameraConnectButton.Text = "Connect Camera";
+            CameraConnectButton.UseVisualStyleBackColor = false;
             // 
             // CameraDisconnectButton
             // 
-            CameraDisconnectButton.Location = new Point(39, 14);
+            CameraDisconnectButton.BackColor = Color.White;
+            CameraDisconnectButton.FlatAppearance.BorderColor = Color.FromArgb(255, 224, 192);
+            CameraDisconnectButton.Font = new Font("Verdana", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            CameraDisconnectButton.ForeColor = Color.Crimson;
+            CameraDisconnectButton.Location = new Point(16, 14);
             CameraDisconnectButton.Name = "CameraDisconnectButton";
-            CameraDisconnectButton.Size = new Size(75, 23);
-            CameraDisconnectButton.TabIndex = 2;
-            CameraDisconnectButton.Text = "Disconnect";
-            CameraDisconnectButton.UseVisualStyleBackColor = true;
+            CameraDisconnectButton.Size = new Size(250, 50);
+            CameraDisconnectButton.TabIndex = 12;
+            CameraDisconnectButton.Text = "Disconnect Camera";
+            CameraDisconnectButton.UseVisualStyleBackColor = false;
             CameraDisconnectButton.Visible = false;
             // 
             // pictureBox1
@@ -1881,6 +1925,15 @@
             GNSSalert.Text = "GNS";
             GNSSalert.UseVisualStyleBackColor = false;
             // 
+            // SettingsPanel
+            // 
+            SettingsPanel.BackColor = Color.Transparent;
+            SettingsPanel.Location = new Point(0, 0);
+            SettingsPanel.Name = "SettingsPanel";
+            SettingsPanel.Size = new Size(1600, 1000);
+            SettingsPanel.TabIndex = 12;
+            SettingsPanel.Visible = false;
+            // 
             // TestStationPanel
             // 
             TestStationPanel.BackColor = Color.FromArgb(28, 28, 28);
@@ -1890,14 +1943,14 @@
             TestStationPanel.TabIndex = 3;
             TestStationPanel.Visible = false;
             // 
-            // RocketAngleIndicator
+            // rocketAngleIndicator1
             // 
-            RocketAngleIndicator.Angle = 175F;
-            RocketAngleIndicator.Location = new Point(13, 7);
-            RocketAngleIndicator.Name = "RocketAngleIndicator";
-            RocketAngleIndicator.RocketImage = (Image)resources.GetObject("RocketAngleIndicator.RocketImage");
-            RocketAngleIndicator.Size = new Size(300, 300);
-            RocketAngleIndicator.TabIndex = 0;
+            rocketAngleIndicator1.Angle = -85F;
+            rocketAngleIndicator1.Location = new Point(20, 0);
+            rocketAngleIndicator1.Name = "rocketAngleIndicator1";
+            rocketAngleIndicator1.RocketImage = (Image)resources.GetObject("rocketAngleIndicator1.RocketImage");
+            rocketAngleIndicator1.Size = new Size(300, 300);
+            rocketAngleIndicator1.TabIndex = 0;
             // 
             // Astra
             // 
@@ -1917,7 +1970,7 @@
             ((System.ComponentModel.ISupportInitialize)AstraLogo).EndInit();
             MainPanel.ResumeLayout(false);
             MainPanel.PerformLayout();
-            AngelPanel.ResumeLayout(false);
+            panel1.ResumeLayout(false);
             SatPanel.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);
             SatAlert.ResumeLayout(false);
@@ -2074,13 +2127,14 @@
         private Label dat2payload;
         private Button ConnectPayloadButton;
         private Button DisconnectPayloadButton;
-        private Button CameraConnectButton;
-        private Button CameraDisconnectButton;
         private Button DisconnectHYIButton;
         private Button ConnectHYIButton;
-        private Panel AngelPanel;
+        private Panel panel1;
+        private Button capvid;
+        private Button capimg;
+        private Button CameraConnectButton;
+        private Button CameraDisconnectButton;
+        private Button stpcapvid;
         private RocketAngleIndicator rocketAngleIndicator1;
-        private RocketAngleIndicator AngleIndicator;
-        private RocketAngleIndicator RocketAngleIndicator;
     }
 }
