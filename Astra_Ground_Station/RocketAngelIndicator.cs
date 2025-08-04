@@ -9,6 +9,7 @@ namespace Astra_Ground_Station
     {
         private float _angle = -85;
         private Image _rocketImage;
+        private Image _backgroundImage;
 
         private const int RocketWidth = 160;
         private const int RocketHeight = 20;
@@ -30,6 +31,30 @@ namespace Astra_Ground_Station
             {
                 this.RocketImage = null;
             }
+
+            try
+            {
+                this.BackgroundImageCustom = Properties.Resources.jıbapsal;
+                if (this.BackgroundImageCustom != null)
+                {
+                    this.BackgroundImageCustom = new Bitmap(this.BackgroundImageCustom, this.Size);
+                }
+            }
+            catch
+            {
+                this.BackgroundImageCustom = null;
+            }
+        }
+
+        [Browsable(false)]
+        public Image BackgroundImageCustom
+        {
+            get => _backgroundImage;
+            set
+            {
+                _backgroundImage = value;
+                Invalidate();
+            }
         }
 
         public float Angle
@@ -37,8 +62,8 @@ namespace Astra_Ground_Station
             get => _angle;
             set
             {
-                if (value < -90) value = -90;
-                if (value > 90) value = 90;
+                if (value < -90) value = 90;
+                if (value > 90) value = -90;
                 _angle = value;
                 Invalidate();
             }
@@ -58,10 +83,18 @@ namespace Astra_Ground_Station
         {
             base.OnPaint(e);
 
+            if (_backgroundImage != null)
+            {
+                e.Graphics.DrawImage(_backgroundImage, 0, 0, this.Width, this.Height);
+            }
+            else
+            {
+                e.Graphics.Clear(Color.White);
+            }
+            
             int groundY = 150;
 
-            using (Pen groundPen = new Pen(Color.Black, 1))
-                e.Graphics.DrawLine(groundPen, 0, groundY, Width, groundY);
+            //using (Pen groundPen = new Pen(Color.Black, 0)) e.Graphics.DrawLine(groundPen, 0, groundY, Width, groundY);
 
             int pivotX = 150;
             int pivotY = groundY;
@@ -71,7 +104,7 @@ namespace Astra_Ground_Station
 
             if (_rocketImage != null)
             {
-                e.Graphics.TranslateTransform(-_rocketImage.Width / 2, -_rocketImage.Height);
+                e.Graphics.TranslateTransform(-_rocketImage.Width / 2-5, -_rocketImage.Height);
                 e.Graphics.DrawImage(_rocketImage, 0, 0, _rocketImage.Width, _rocketImage.Height);
             }
             else

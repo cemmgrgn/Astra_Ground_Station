@@ -1260,6 +1260,7 @@
             chartArea3.AxisY.Title = "Altitute(m)";
             chartArea3.Name = "ChartArea1";
             AltChart.ChartAreas.Add(chartArea3);
+            legend3.BorderWidth = 2;
             legend3.Enabled = false;
             legend3.Name = "Legend1";
             AltChart.Legends.Add(legend3);
@@ -1946,7 +1947,8 @@
             // rocketAngleIndicator1
             // 
             rocketAngleIndicator1.Angle = -85F;
-            rocketAngleIndicator1.Location = new Point(20, 0);
+            rocketAngleIndicator1.BackgroundImageCustom = (Image)resources.GetObject("rocketAngleIndicator1.BackgroundImageCustom");
+            rocketAngleIndicator1.Location = new Point(23, -1);
             rocketAngleIndicator1.Name = "rocketAngleIndicator1";
             rocketAngleIndicator1.RocketImage = (Image)resources.GetObject("rocketAngleIndicator1.RocketImage");
             rocketAngleIndicator1.Size = new Size(300, 300);
@@ -2129,12 +2131,12 @@
         private Button DisconnectPayloadButton;
         private Button DisconnectHYIButton;
         private Button ConnectHYIButton;
-        private Panel panel1;
         private Button capvid;
         private Button capimg;
         private Button CameraConnectButton;
         private Button CameraDisconnectButton;
         private Button stpcapvid;
+        private Panel panel1;
         private RocketAngleIndicator rocketAngleIndicator1;
     }
 }
