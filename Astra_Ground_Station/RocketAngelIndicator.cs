@@ -7,7 +7,7 @@ namespace Astra_Ground_Station
 {
     public partial class RocketAngleIndicator : UserControl
     {
-        private float _angle = -85;
+        private float _angle = -95;
         private Image _rocketImage;
         private Image _backgroundImage;
 
@@ -64,7 +64,7 @@ namespace Astra_Ground_Station
             {
                 if (value < -90) value = 90;
                 if (value > 90) value = -90;
-                _angle = value;
+                _angle = value-90;
                 Invalidate();
             }
         }

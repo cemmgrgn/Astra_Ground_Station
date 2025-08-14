@@ -821,61 +821,55 @@ namespace Astra_Ground_Station
                     if (!string.IsNullOrEmpty(data) && data.StartsWith("$AR"))
                     {
                         string[] parts = data.Split(',');
-                        if (parts.Length >= 22)
+
+                        dat1lat.Text = (parts.Length > 1) ? parts[1] : "";
+                        dat1lon.Text = (parts.Length > 2) ? parts[2] : "";
+                        dat1alt.Text = (parts.Length > 3) ? parts[3] : "";
+                        dat1pre.Text = (parts.Length > 4) ? parts[4] : "";
+                        dat1gspd.Text = (parts.Length > 5) ? parts[5] : "";
+                        dat1aspd.Text = (parts.Length > 6) ? parts[6] : "";
+                        dat1ang.Text = (parts.Length > 7) ? parts[7] : "";
+                        dat1yaw.Text = (parts.Length > 8) ? parts[8] : "";
+                        dat1pitch.Text = (parts.Length > 9) ? parts[9] : "";
+                        dat1roll.Text = (parts.Length > 10) ? parts[10] : "";
+                        dat1accx.Text = (parts.Length > 11) ? parts[11] : "";
+                        dat1accy.Text = (parts.Length > 12) ? parts[12] : "";
+                        dat1accz.Text = (parts.Length > 13) ? parts[13] : "";
+                        dat1absacc.Text = (parts.Length > 14) ? parts[14] : "";
+                        dat1gyrx.Text = (parts.Length > 15) ? parts[15] : "";
+                        dat1gyry.Text = (parts.Length > 16) ? parts[16] : "";
+                        dat1gyrz.Text = (parts.Length > 17) ? parts[17] : "";
+                        dat1temp.Text = (parts.Length > 18) ? parts[18] : "";
+                        dat1calt.Text = (parts.Length > 19) ? parts[19] : "";
+                        dat1vol.Text = (parts.Length > 20) ? parts[20] : "";
+                        dat1sts.Text = (parts.Length > 21) ? parts[21] : "";
+
+                        if (double.TryParse(dat1calt.Text, out double caltVal)) lastAlt = caltVal;
+                        if (double.TryParse(dat1gspd.Text, out double gspdVal)) lastSdp = gspdVal;
+                        if (double.TryParse(dat1absacc.Text, out double absaccVal)) lastAcc = absaccVal;
+                        hasNewRocketData = true;
+
+                        if (double.TryParse(dat1lat.Text, out double rocketLat) &&
+                            double.TryParse(dat1lon.Text, out double rocketLon))
                         {
-                            dat1lat.Text = parts[1];
-                            dat1lon.Text = parts[2];
-                            dat1alt.Text = parts[3];
-                            dat1pre.Text = parts[4];
-                            dat1gspd.Text = parts[5];
-                            dat1aspd.Text = parts[6];
-                            dat1ang.Text = parts[7];
-                            dat1yaw.Text = parts[8];
-                            dat1pitch.Text = parts[9];
-                            dat1roll.Text = parts[10];
-                            dat1accx.Text = parts[11];
-                            dat1accy.Text = parts[12];
-                            dat1accz.Text = parts[13];
-                            dat1absacc.Text = parts[14];
-                            dat1gyrx.Text = parts[15];
-                            dat1gyry.Text = parts[16];
-                            dat1gyrz.Text = parts[17];
-                            dat1temp.Text = parts[18];
-                            dat1calt.Text = parts[19];
-                            dat1vol.Text = parts[20];
-                            dat1sts.Text = parts[21];
-
-                            if (double.TryParse(dat1calt.Text, out double caltVal)) lastAlt = caltVal;
-                            if (double.TryParse(dat1gspd.Text, out double gspdVal)) lastSdp = gspdVal;
-                            if (double.TryParse(dat1absacc.Text, out double absaccVal)) lastAcc = absaccVal;
-                            hasNewRocketData = true;
-
-                            if (double.TryParse(dat1lat.Text, out double rocketLat) &&
-                                double.TryParse(dat1lon.Text, out double rocketLon))
-                            {
-                                lastMapLat = rocketLat;
-                                lastMapLon = rocketLon;
-                            }
-                            
-                            if (rocketAngleIndicator1 != null && dat1ang != null)
-                            {
-                                if (float.TryParse(dat1ang.Text, out float angleValue))
-                                {
-                                    rocketAngleIndicator1.SetAngle(angleValue);
-                                }
-                                else
-                                {
-                                    rocketAngleIndicator1.SetAngle(0);
-                                }
-                            }
-
-                            UpdateStatusAlerts();
-                            UpdateSensorAlerts();
+                            lastMapLat = rocketLat;
+                            lastMapLon = rocketLon;
                         }
-                        else
+
+                        if (rocketAngleIndicator1 != null && dat1ang != null)
                         {
-                            messageLabel.Text = "Invalid rocket data!";
+                            if (float.TryParse(dat1ang.Text, out float angleValue))
+                            {
+                                rocketAngleIndicator1.SetAngle(angleValue);
+                            }
+                            else
+                            {
+                                rocketAngleIndicator1.SetAngle(0);
+                            }
                         }
+
+                        UpdateStatusAlerts();
+                        UpdateSensorAlerts();
                     }
                 });
             }
@@ -888,7 +882,6 @@ namespace Astra_Ground_Station
                 });
             }
         }
-
         private void SerialPortPayload_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -913,41 +906,38 @@ namespace Astra_Ground_Station
                     if (!string.IsNullOrEmpty(data) && data.StartsWith("$AP"))
                     {
                         string[] parts = data.Split(',');
-                        if (parts.Length >= 22)
-                        {
-                            dat2lat.Text = parts[1];
-                            dat2lon.Text = parts[2];
-                            dat2alt.Text = parts[3];
-                            dat2pre.Text = parts[4];
-                            dat2gspd.Text = parts[5];
-                            dat2aspd.Text = parts[6];
-                            dat2wspd.Text = parts[7];
-                            dat2yaw.Text = parts[8];
-                            dat2pitch.Text = parts[9];
-                            dat2roll.Text = parts[10];
-                            dat2accx.Text = parts[11];
-                            dat2accy.Text = parts[12];
-                            dat2accz.Text = parts[13];
-                            dat2absacc.Text = parts[14];
-                            dat2gyrx.Text = parts[15];
-                            dat2gyry.Text = parts[16];
-                            dat2gyrz.Text = parts[17];
-                            dat2temp.Text = parts[18];
-                            dat2calt.Text = parts[19];
-                            dat2vol.Text = parts[20];
-                            dat2sts.Text = parts[21];
 
-                            if (double.TryParse(dat2calt.Text, out double caltVal)) lastAltPayload = caltVal;
-                            if (double.TryParse(dat2gspd.Text, out double gspdVal)) lastSdpPayload = gspdVal;
-                            if (double.TryParse(dat2absacc.Text, out double absaccVal)) lastAccPayload = absaccVal;
-                            hasNewPayloadData = true;
+                        dat1lat.Text = (parts.Length > 1) ? parts[1] : "";
+                        dat1lon.Text = (parts.Length > 2) ? parts[2] : "";
+                        dat1alt.Text = (parts.Length > 3) ? parts[3] : "";
+                        dat2lat.Text = (parts.Length > 1) ? parts[1] : "";
+                        dat2lon.Text = (parts.Length > 2) ? parts[2] : "";
+                        dat2alt.Text = (parts.Length > 3) ? parts[3] : "";
+                        dat2pre.Text = (parts.Length > 4) ? parts[4] : "";
+                        dat2gspd.Text = (parts.Length > 5) ? parts[5] : "";
+                        dat2aspd.Text = (parts.Length > 6) ? parts[6] : "";
+                        dat2wspd.Text = (parts.Length > 7) ? parts[7] : "";
+                        dat2yaw.Text = (parts.Length > 8) ? parts[8] : "";
+                        dat2pitch.Text = (parts.Length > 9) ? parts[9] : "";
+                        dat2roll.Text = (parts.Length > 10) ? parts[10] : "";
+                        dat2accx.Text = (parts.Length > 11) ? parts[11] : "";
+                        dat2accy.Text = (parts.Length > 12) ? parts[12] : "";
+                        dat2accz.Text = (parts.Length > 13) ? parts[13] : "";
+                        dat2absacc.Text = (parts.Length > 14) ? parts[14] : "";
+                        dat2gyrx.Text = (parts.Length > 15) ? parts[15] : "";
+                        dat2gyry.Text = (parts.Length > 16) ? parts[16] : "";
+                        dat2gyrz.Text = (parts.Length > 17) ? parts[17] : "";
+                        dat2temp.Text = (parts.Length > 18) ? parts[18] : "";
+                        dat2calt.Text = (parts.Length > 19) ? parts[19] : "";
+                        dat2vol.Text = (parts.Length > 20) ? parts[20] : "";
+                        dat2sts.Text = (parts.Length > 21) ? parts[21] : "";
 
-                            UpdateSensorAlertsPayload();
-                        }
-                        else
-                        {
-                            messageLabel.Text = "Invalid payload!";
-                        }
+                        if (double.TryParse(dat2calt.Text, out double caltVal)) lastAltPayload = caltVal;
+                        if (double.TryParse(dat2gspd.Text, out double gspdVal)) lastSdpPayload = gspdVal;
+                        if (double.TryParse(dat2absacc.Text, out double absaccVal)) lastAccPayload = absaccVal;
+                        hasNewPayloadData = true;
+
+                        UpdateSensorAlertsPayload();
                     }
                 });
             }
@@ -998,10 +988,10 @@ namespace Astra_Ground_Station
                 string[] parts = lastRocketData.Split(',');
                 if (parts.Length >= 22)
                 {
-                    float.TryParse(parts[3], out altitude);
-                    float.TryParse(parts[19], out rocketGpsAlt);
-                    float.TryParse(parts[1], out rocketLat);
-                    float.TryParse(parts[2], out rocketLon);
+                    float.TryParse(parts[19], out altitude);
+                    float.TryParse(parts[19], out payloadGpsAlt);
+                    float.TryParse(parts[1], out payloadLat);
+                    float.TryParse(parts[2], out payloadLon);
                     float.TryParse(parts[11], out accX);
                     float.TryParse(parts[12], out accY);
                     float.TryParse(parts[13], out accZ);
@@ -1018,7 +1008,7 @@ namespace Astra_Ground_Station
                 string[] parts = lastPayloadData.Split(',');
                 if (parts.Length >= 22)
                 {
-                    float.TryParse(parts[19], out payloadGpsAlt);
+                    float.TryParse(parts[3], out payloadGpsAlt);
                     float.TryParse(parts[1], out payloadLat);
                     float.TryParse(parts[2], out payloadLon);
                 }
@@ -1031,9 +1021,9 @@ namespace Astra_Ground_Station
             }
 
             WriteFloat(altitude, 6);
-            WriteFloat(rocketGpsAlt, 10);
-            WriteFloat(rocketLat, 14);
-            WriteFloat(rocketLon, 18);
+            WriteFloat(payloadGpsAlt, 10);
+            WriteFloat(payloadLat, 14);
+            WriteFloat(payloadLon, 18);
             WriteFloat(payloadGpsAlt, 22);
             WriteFloat(payloadLat, 26);
             WriteFloat(payloadLon, 30);
@@ -1172,7 +1162,7 @@ namespace Astra_Ground_Station
                 imuChangedRecently = false;
             }
 
-            if ((DateTime.Now - lastGNSSAlertChange).TotalSeconds > 3)
+            if ((DateTime.Now - lastGNSSAlertChange).TotalSeconds > 6000)
             {
                 SetAlertRed(GNSSalert);
                 gnssChangedRecently = false;
@@ -1190,7 +1180,7 @@ namespace Astra_Ground_Station
                 payloadIMUChangedRecently = false;
             }
 
-            if ((DateTime.Now - lastPayloadGNSSAlertChange).TotalSeconds > 3)
+            if ((DateTime.Now - lastPayloadGNSSAlertChange).TotalSeconds > 60000)
             {
                 SetAlertRed(GNSSalert2);
                 payloadGNSSChangedRecently = false;
@@ -1245,10 +1235,16 @@ namespace Astra_Ground_Station
             if (!altChangedRecently && !imuChangedRecently)
             {
                 SetAlertRed(FSCalert);
+                SetAlertGreen(SSCalert);
+                SetAlertGreen(TSCalert);
+
             }
             else if (altChangedRecently && imuChangedRecently)
             {
                 SetAlertGreen(FSCalert);
+                SetAlertGreen(SSCalert);
+                SetAlertGreen(TSCalert);
+
             }
             else
             {
@@ -1372,6 +1368,7 @@ namespace Astra_Ground_Station
                 if (!lastPayloadGNSSLon.HasValue || lastPayloadGNSSLon.Value != lonVal)
                 {
                     SetAlertGreen(GNSSalert2);
+
                     lastPayloadGNSSAlertChange = DateTime.Now;
                     payloadGNSSChangedRecently = true;
                 }
@@ -1469,7 +1466,7 @@ namespace Astra_Ground_Station
             rocketLogFile = Path.Combine("logs", $"Astra_Rocket_{dateStr}.txt");
             try { File.WriteAllText(rocketLogFile, ""); } catch (Exception ex) { LogError(ex, "CreateRocketLogFile"); }
         }
-
+         
         private void CreatePayloadLogFile()
         {
             string dateStr = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");

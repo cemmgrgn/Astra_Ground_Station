@@ -1946,9 +1946,9 @@
             // 
             // rocketAngleIndicator1
             // 
-            rocketAngleIndicator1.Angle = -85F;
+            rocketAngleIndicator1.Angle = -95F;
             rocketAngleIndicator1.BackgroundImageCustom = (Image)resources.GetObject("rocketAngleIndicator1.BackgroundImageCustom");
-            rocketAngleIndicator1.Location = new Point(23, -1);
+            rocketAngleIndicator1.Location = new Point(45, 12);
             rocketAngleIndicator1.Name = "rocketAngleIndicator1";
             rocketAngleIndicator1.RocketImage = (Image)resources.GetObject("rocketAngleIndicator1.RocketImage");
             rocketAngleIndicator1.Size = new Size(300, 300);

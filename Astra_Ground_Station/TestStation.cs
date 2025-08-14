@@ -54,6 +54,8 @@ namespace Astra_Ground_Station
                     {
                         rocketSerialPort = new SerialPort(rocketPort, rocketBaud);
                         rocketSerialPort.DataReceived += RocketSerialPort_DataReceived;
+                        rocketSerialPort.ErrorReceived += RocketSerialPort_ErrorReceived;
+                        rocketSerialPort.PinChanged += RocketSerialPort_PinChanged;
                         rocketSerialPort.Open();
                         SetErrorMsg($"Connected: {rocketPort} @ {rocketBaud}");
 
@@ -78,25 +80,7 @@ namespace Astra_Ground_Station
 
         private void btnDisconnect_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (rocketSerialPort != null && rocketSerialPort.IsOpen)
-                {
-                    rocketSerialPort.Close();
-                    SetErrorMsg("Serial port disconnected.");
-
-                    btnConnect.Visible = true;
-                    btnDisconnect.Visible = false;
-                }
-                else
-                {
-                    SetErrorMsg("Port already closed.");
-                }
-            }
-            catch (Exception ex)
-            {
-                SetErrorMsg("Serial port could not be closed: " + ex.Message);
-            }
+            DisconnectSerialPort("Serial port disconnected.");
         }
 
         private void RocketSerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -106,9 +90,36 @@ namespace Astra_Ground_Station
                 string data = rocketSerialPort.ReadLine();
                 this.BeginInvoke(new Action(() => ProcessRocketData(data)));
             }
-            catch (Exception ex)
+            catch
             {
-                SetErrorMsg("Data receive error: " + ex.Message);
+                this.BeginInvoke(new Action(() =>
+                {
+                    DisconnectSerialPort("");
+                }));
+            }
+        }
+
+        private void RocketSerialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            this.BeginInvoke(new Action(() =>
+            {
+                DisconnectSerialPort("");
+            }));
+        }
+
+        private void RocketSerialPort_PinChanged(object sender, SerialPinChangedEventArgs e)
+        {
+            if (e.EventType == SerialPinChange.CDChanged ||
+                e.EventType == SerialPinChange.DsrChanged ||
+                e.EventType == SerialPinChange.Break)
+            {
+                if (rocketSerialPort != null && !rocketSerialPort.IsOpen)
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        DisconnectSerialPort("");
+                    }));
+                }
             }
         }
 
@@ -174,9 +185,8 @@ namespace Astra_Ground_Station
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                SetErrorMsg("SetTelemetryText error: " + ex.Message);
             }
         }
 
@@ -187,6 +197,29 @@ namespace Astra_Ground_Station
             {
                 label.Text = msg;
             }
+        }
+
+        private void DisconnectSerialPort(string msg)
+        {
+            try
+            {
+                if (rocketSerialPort != null)
+                {
+                    if (rocketSerialPort.IsOpen)
+                        rocketSerialPort.Close();
+
+                    rocketSerialPort.DataReceived -= RocketSerialPort_DataReceived;
+                    rocketSerialPort.ErrorReceived -= RocketSerialPort_ErrorReceived;
+                    rocketSerialPort.PinChanged -= RocketSerialPort_PinChanged;
+                    rocketSerialPort.Dispose();
+                    rocketSerialPort = null;
+                }
+            }
+            catch { }
+            SetErrorMsg(msg);
+
+            btnConnect.Visible = true;
+            btnDisconnect.Visible = false;
         }
 
         private void label17_Click(object sender, EventArgs e)
